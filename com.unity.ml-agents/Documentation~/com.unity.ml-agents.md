@@ -73,10 +73,10 @@ You can control the frequency of Academy stepping by calling `Academy.Instance.D
 * [Website]
 
 [github docs]: https://unity-technologies.github.io/ml-agents/
-[installation instructions]: https://github.com/Unity-Technologies/ml-agents/blob/release_22_docs/docs/Installation.md
+[installation instructions]: https://github.com/Unity-Technologies/ml-agents/blob/release_23_docs/docs/Installation.md
 [Unity Inference Engine]: https://docs.unity3d.com/Packages/com.unity.ai.inference@2.2/manual/index.html
 [python package]: https://github.com/Unity-Technologies/ml-agents
-[ML-Agents GitHub repo]: https://github.com/Unity-Technologies/ml-agents/blob/release_22_docs/com.unity.ml-agents.extensions
+[ML-Agents GitHub repo]: https://github.com/Unity-Technologies/ml-agents/blob/release_23_docs/com.unity.ml-agents.extensions
 [GitHub repository]: https://github.com/Unity-Technologies/ml-agents
 [Execution Order of Event Functions]: https://docs.unity3d.com/Manual/ExecutionOrder.html
 [Unity Discussions]: https://discussions.unity.com/tag/ml-agents
