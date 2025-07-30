@@ -11,6 +11,7 @@ and this project adheres to
 #### com.unity.ml-agents / com.unity.ml-agents.extensions (C#)
 - Upgraded to Inference Engine 2.2.1 (#6212)
 - The minimum supported Unity version was updated to 6000.0. (#6207)
+- Merge the extension package com.unity.ml-agents.extensions to the main package com.unity.ml-agents. (#6227)
 
 ### Minor Changes
 #### ml-agents / ml-agents-envs
