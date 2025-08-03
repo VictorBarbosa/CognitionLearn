@@ -188,6 +188,12 @@ def create_environment_factory(
     ) -> UnityEnvironment:
         # Make sure that each environment gets a different seed
         env_seed = seed + worker_id
+        
+        # Determine trainer type based on worker_id for log folder naming
+        trainer_type_for_worker = "ppo" if worker_id % 2 == 0 else "sac"
+        specific_log_folder = os.path.join(log_folder, trainer_type_for_worker)
+        os.makedirs(specific_log_folder, exist_ok=True) # Ensure directory exists
+
         return UnityEnvironment(
             file_name=env_path,
             worker_id=worker_id,
@@ -198,7 +204,7 @@ def create_environment_factory(
             base_port=start_port,
             additional_args=env_args,
             side_channels=side_channels,
-            log_folder=log_folder,
+            log_folder=specific_log_folder,
             timeout_wait=timeout_wait,
         )
 
