@@ -8,7 +8,7 @@ test_editors:
       enableNoDefaultPackages: !!bool true
 
 trunk_editor:
-    - version: 6000.3.0a3
+    - version: trunk
       testProject: DevProject
 
 test_platforms:
@@ -22,7 +22,7 @@ test_platforms:
       flavor: b1.large
     - name: linux
       type: Unity::VM
-      image: ml-agents/ubuntu-ci:v1.0.0
+      image: ml-agents/ubuntu-ci:v1.0.1
       flavor: b1.large
 
 packages:
