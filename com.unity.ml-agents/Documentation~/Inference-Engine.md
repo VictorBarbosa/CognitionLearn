@@ -6,7 +6,7 @@ The ML-Agents Toolkit allows you to use pre-trained neural network models inside
 
 Inference Engine supports [all Unity runtime platforms](https://docs.unity3d.com/Manual/PlatformSpecific.html).
 
-Scripting Backends : Inference Engine is generally faster with **IL2CPP** than with **Mono** for Standalone builds. In the Editor, It is not possible to use Inference Engine with GPU device selected when Editor Graphics Emulation is set to **OpenGL(ES) 3.0 or 2.0 emulation**. Also there might be non-fatal build time errors when target platform includes Graphics API that does not support **Unity Compute Shaders**.
+Scripting Backends : Inference Engine is generally faster with **IL2CPP** than with **Mono** for Standalone builds. In the Editor, It is not possible to use Inference Engine with GPU device selected when Editor Graphics Emulation is set to **OpenGL(ES) 3.0 or 2.0 emulation**. Also, there might be non-fatal build time errors when target platform includes Graphics API that does not support **Unity Compute Shaders**.
 
 In cases when it is not possible to use compute shaders on the target platform, inference can be performed using **CPU** or **GPUPixel** Inference Engine backends.
 
@@ -18,7 +18,7 @@ When using a model, drag the model file into the **Model** field in the Inspecto
 
 # Unsupported use cases
 ## Externally trained models
-The ML-Agents Toolkit only supports the models created with our trainers. Model loading expects certain conventions for constants and tensor names. While it is possible to construct a model that follows these conventions, we don't provide any additional help for this. More details can be found in [TensorNames.cs](https://github.com/Unity-Technologies/ml-agents/blob/release_22_docs/com.unity.ml-agents/Runtime/Inference/TensorNames.cs) and [SentisModelParamLoader.cs](https://github.com/Unity-Technologies/ml-agents/blob/release_22_docs/com.unity.ml-agents/Runtime/Inference/SentisModelParamLoader.cs).
+The ML-Agents Toolkit only supports the models created with our trainers. Model loading expects certain conventions for constants and tensor names. While it is possible to construct a model that follows these conventions, we don't provide any additional help for this. More details can be found in [TensorNames.cs](https://github.com/Unity-Technologies/ml-agents/blob/release/4.0.0/com.unity.ml-agents/Runtime/Inference/TensorNames.cs) and [SentisModelParamLoader.cs](https://github.com/Unity-Technologies/ml-agents/blob/release/4.0.0/com.unity.ml-agents/Runtime/Inference/SentisModelParamLoader.cs).
 
 If you wish to run inference on an externally trained model, you should use Inference Engine directly, instead of trying to run it through ML-Agents.
 

@@ -6,7 +6,7 @@ We provide a gym wrapper and instructions for using it with existing machine lea
 
 ## Installation
 
-The gym wrapper is part of the `mlagents_envs` package. Please refer to the [mlagents_envs installation instructions](https://github.com/Unity-Technologies/ml-agents/blob/release_22/ml-agents-envs/README.md).
+The gym wrapper is part of the `mlagents_envs` package. Please refer to the [mlagents_envs installation instructions](https://github.com/Unity-Technologies/ml-agents/blob/release/4.0.0/ml-agents-envs/README.md).
 
 
 ## Using the Gym Wrapper

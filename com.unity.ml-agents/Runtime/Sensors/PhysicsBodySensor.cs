@@ -21,9 +21,9 @@ namespace Unity.MLAgents.Sensors
         /// <summary>
         /// Construct a new PhysicsBodySensor
         /// </summary>
-        /// <param name="poseExtractor"></param>
-        /// <param name="settings"></param>
-        /// <param name="sensorName"></param>
+        /// <param name="poseExtractor">The pose extractor used to obtain rigid body poses.</param>
+        /// <param name="settings">The settings used to configure the physics sensor.</param>
+        /// <param name="sensorName">The name assigned to the sensor.</param>
         public PhysicsBodySensor(
             RigidBodyPoseExtractor poseExtractor,
             PhysicsSensorSettings settings,

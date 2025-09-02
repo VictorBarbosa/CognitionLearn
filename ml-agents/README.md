@@ -23,7 +23,7 @@ python -m pip install mlagents==1.1.0
 
 For more information on the ML-Agents Toolkit and how to instrument a Unity
 scene with the ML-Agents SDK, check out the main
-[ML-Agents Toolkit documentation](../com.unity.ml-agents/Documentation~/Readme.md).
+[ML-Agents Toolkit documentation](https://docs.unity3d.com/Packages/com.unity.ml-agents@latest).
 
 ## Limitations
 

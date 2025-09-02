@@ -31,7 +31,7 @@ for more information on how to use the API to interact with a Unity environment.
 
 For more information on the ML-Agents Toolkit and how to instrument a Unity
 scene with the ML-Agents SDK, check out the main
-[ML-Agents Toolkit documentation](../com.unity.ml-agents/Documentation~/Readme.md).
+[ML-Agents Toolkit documentation](https://docs.unity3d.com/Packages/com.unity.ml-agents@latest).
 
 ## Limitations
 

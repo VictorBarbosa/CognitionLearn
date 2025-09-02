@@ -36,10 +36,10 @@ You will need to clone the repository if you plan to modify or extend the ML-Age
 Use the command below to clone the repository
 
 ```sh
-git clone --branch release_22 https://github.com/Unity-Technologies/ml-agents.git
+git clone --branch release_23 https://github.com/Unity-Technologies/ml-agents.git
 ```
 
-The `--branch release_22` option will switch to the tag of the latest stable release. Omitting that will get the `develop` branch which is potentially unstable. However, if you find that a release branch does not work, the recommendation is to use the `develop` branch as it may have potential fixes for bugs and dependency issues.
+The `--branch release_23` option will switch to the tag of the latest stable release. Omitting that will get the `develop` branch which is potentially unstable. However, if you find that a release branch does not work, the recommendation is to use the `develop` branch as it may have potential fixes for bugs and dependency issues.
 
 (Optional to get bleeding edge)
 
@@ -47,7 +47,7 @@ The `--branch release_22` option will switch to the tag of the latest stable rel
 git clone https://github.com/Unity-Technologies/ml-agents.git
 ```
 
-If you plan to contribute those changes back, make sure to clone the `develop` branch (by omitting `--branch release_22` from the command above). See our [Contributions Guidelines](CONTRIBUTING.md) for more information on contributing to the ML-Agents Toolkit.
+If you plan to contribute those changes back, make sure to clone the `develop` branch (by omitting `--branch release_23` from the command above). See our [Contributions Guidelines](CONTRIBUTING.md) for more information on contributing to the ML-Agents Toolkit.
 
 You can [add the local](https://docs.unity3d.com/Manual/upm-ui-local.html) `com.unity.ml-agents` package (from the repository that you just cloned) to your project by:
 
@@ -84,7 +84,7 @@ which will install the latest version of ML-Agents Python packages and associate
 conda install "grpcio=1.48.2" -c conda-forge
 ```
 
-When you install the Python package, the dependencies listed in the [setup.py file](https://github.com/Unity-Technologies/ml-agents/blob/release_22/ml-agents/setup.py) are also installed. These include [PyTorch](Background-PyTorch.md).
+When you install the Python package, the dependencies listed in the [setup.py file](https://github.com/Unity-Technologies/ml-agents/blob/release/4.0.0/ml-agents/setup.py) are also installed. These include [PyTorch](Background-PyTorch.md).
 
 
 #### Advanced: Local Installation for Development
