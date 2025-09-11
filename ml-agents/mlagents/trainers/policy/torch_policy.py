@@ -45,6 +45,7 @@ class TorchPolicy(Policy):
             "Losses/Value Loss": "value_loss",
             "Losses/Policy Loss": "policy_loss",
         }
+        self.actor_kwargs = actor_kwargs
 
         self.actor = actor_cls(
             observation_specs=self.behavior_spec.observation_specs,

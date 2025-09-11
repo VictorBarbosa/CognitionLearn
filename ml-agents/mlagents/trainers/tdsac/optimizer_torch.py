@@ -46,7 +46,8 @@ class TorchTDSACOptimizer(TorchSACOptimizer):
 
     def _move_to_device(self, device: torch.device) -> None:
         super()._move_to_device(device)
-        self.target_q_network.to(device)
+        if hasattr(self, "target_q_network"):
+            self.target_q_network.to(device)
 
     def sac_value_loss(
         self,
@@ -254,19 +255,19 @@ class TorchTDSACOptimizer(TorchSACOptimizer):
                 )
             else:
                 next_value_memories = None
-            target_values, _ = self.target_network(
-                next_obs,
-                memories=next_value_memories,
-                sequence_length=self.policy.sequence_length,
+            
+            next_action, _, _ = self.policy.actor.get_action_and_stats(
+                next_obs, sequence_length=self.policy.sequence_length
             )
+
             target_q1, target_q2 = self.target_q_network(
                 next_obs,
+                actions=next_action.continuous_tensor,
                 memories=next_value_memories,
                 sequence_length=self.policy.sequence_length,
             )
             target_q = torch.min(list(target_q1.values())[0], list(target_q2.values())[0])
-            for name in target_values:
-                target_values[name] = target_q
+            target_values = {name: target_q for name in self.stream_names}
 
         masks = ModelUtils.list_to_tensor(batch[BufferKey.MASKS], dtype=torch.bool)
         dones = ModelUtils.list_to_tensor(batch[BufferKey.DONE])

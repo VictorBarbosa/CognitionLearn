@@ -96,6 +96,12 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
 
         if env_settings.env_path is None:
             port = None
+
+        if options.behaviors:
+            trainer_type = list(options.behaviors.values())[0].trainer_type
+        else:
+            trainer_type = "ppo"
+
         env_factory = create_environment_factory(
             env_settings.env_path,
             engine_settings.no_graphics,
@@ -106,6 +112,7 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
             port,
             env_settings.env_args,
             os.path.abspath(run_logs_dir),  # Unity environment requires absolute path
+            trainer_type,
         )
 
         env_manager = SubprocessEnvManager(env_factory, options, env_settings.num_envs)
@@ -182,6 +189,7 @@ def create_environment_factory(
     start_port: Optional[int],
     env_args: Optional[List[str]],
     log_folder: str,
+    trainer_type: str,
 ) -> Callable[[int, List[SideChannel]], BaseEnv]:
     def create_unity_environment(
         worker_id: int, side_channels: List[SideChannel]
@@ -189,9 +197,7 @@ def create_environment_factory(
         # Make sure that each environment gets a different seed
         env_seed = seed + worker_id
         
-        # Determine trainer type based on worker_id for log folder naming
-        trainer_type_for_worker = "ppo" if worker_id % 2 == 0 else "sac"
-        specific_log_folder = os.path.join(log_folder, trainer_type_for_worker)
+        specific_log_folder = os.path.join(log_folder, trainer_type)
         os.makedirs(specific_log_folder, exist_ok=True) # Ensure directory exists
 
         return UnityEnvironment(

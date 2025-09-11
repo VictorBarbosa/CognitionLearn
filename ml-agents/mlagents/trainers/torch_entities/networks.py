@@ -108,6 +108,8 @@ class ObservationEncoder(nn.Module):
                 # The input can be encoded without having to process other inputs
                 obs_input = inputs[idx]
                 processed_obs = processor(obs_input)
+                if processed_obs.ndim == 1:
+                    processed_obs = processed_obs.unsqueeze(-1)
                 encodes.append(processed_obs)
             else:
                 var_len_processor_inputs.append((processor, inputs[idx]))
@@ -155,6 +157,8 @@ class ObservationEncoder(nn.Module):
                 # The input can be encoded without having to process other inputs
                 obs_input = inputs[idx]
                 processed_obs = processor(obs_input)
+                if processed_obs.ndim == 1:
+                    processed_obs = processed_obs.unsqueeze(-1)
                 encodes.append(processed_obs)
             else:
                 raise UnityTrainerException(
@@ -164,9 +168,9 @@ class ObservationEncoder(nn.Module):
         if len(encodes) != 0:
             encoded = torch.cat(encodes, dim=1)
         else:
-            raise UnityTrainerException(
-                "Trainer was unable to process any of the goals provided as input."
-            )
+            if not inputs:
+                return torch.empty((0, 0))
+            return torch.empty((inputs[0].shape[0], 0))
         return encoded
 
 
@@ -312,7 +316,7 @@ class MultiAgentNetworkBody(torch.nn.Module):
         else:
             self.lstm = None  # type: ignore
         self._current_max_agents = torch.nn.Parameter(
-            torch.as_tensor(1), requires_grad=False
+            torch.as_tensor(1.0), requires_grad=False
         )
 
     @property
@@ -334,7 +338,7 @@ class MultiAgentNetworkBody(torch.nn.Module):
         # Just get the first element in each obs regardless of its dimension. This will speed up
         # searching for NaNs.
         only_first_obs_flat = torch.stack(
-            [_obs.flatten(start_dim=1)[:, 0] for _obs in only_first_obs], dim=1
+            [_obs.reshape(_obs.shape[0], -1)[:, 0] for _obs in only_first_obs], dim=1
         )
         # Get the mask from NaNs
         attn_mask = only_first_obs_flat.isnan().float()
@@ -351,7 +355,10 @@ class MultiAgentNetworkBody(torch.nn.Module):
             no_nan_obs = []
             for obs in single_agent_obs:
                 new_obs = obs.clone()
-                new_obs[attention_mask.bool()[:, i_agent], ::] = 0.0  # Remove NaNs fast
+                if new_obs.ndim > 1:
+                    new_obs[attention_mask.bool()[:, i_agent], ::] = 0.0
+                else:
+                    new_obs[attention_mask.bool()[:, i_agent]] = 0.0
                 no_nan_obs.append(new_obs)
             obs_with_no_nans.append(no_nan_obs)
         return obs_with_no_nans

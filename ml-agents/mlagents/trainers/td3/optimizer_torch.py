@@ -158,6 +158,14 @@ class TorchTD3Optimizer(TorchOptimizer):
         )
         ModelUtils.soft_update(self.q_network, self.target_q_network, 1.0)
 
+        self.target_actor = type(self.policy.actor)(
+            self.policy.behavior_spec.observation_specs,
+            self.policy.network_settings,
+            self.policy.behavior_spec.action_spec,
+            **self.policy.actor_kwargs
+        ).to(default_device())
+        ModelUtils.soft_update(self.policy.actor, self.target_actor, 1.0)
+
         policy_params = list(self.policy.actor.parameters())
         value_params = list(self.q_network.parameters())
 
@@ -179,6 +187,8 @@ class TorchTD3Optimizer(TorchOptimizer):
     def _move_to_device(self, device: torch.device) -> None:
         self.q_network.to(device)
         self.target_q_network.to(device)
+        if hasattr(self, "target_actor"):
+            self.target_actor.to(device)
 
     def q_loss(
         self,
@@ -290,16 +300,16 @@ class TorchTD3Optimizer(TorchOptimizer):
         )
 
         with torch.no_grad():
-            next_action, _, _ = self.policy.actor.get_action_and_stats(
+            next_action, _, _ = self.target_actor.get_action_and_stats(
                 next_obs, memories=memories, sequence_length=self.policy.sequence_length
             )
             noise = torch.randn_like(next_action.continuous_tensor) * self.target_policy_noise
             noise = torch.clamp(noise, -self.noise_clip, self.noise_clip)
-            next_action.continuous_tensor += noise
-            next_action.continuous_tensor = torch.clamp(next_action.continuous_tensor, -1, 1)
+            noisy_continuous_action = next_action.continuous_tensor + noise
+            noisy_continuous_action = torch.clamp(noisy_continuous_action, -1, 1)
 
             target_q1, target_q2 = self.target_q_network(
-                next_obs, next_action.continuous_tensor, memories=q_memories, sequence_length=self.policy.sequence_length
+                next_obs, noisy_continuous_action, memories=q_memories, sequence_length=self.policy.sequence_length
             )
             target_q = torch.min(list(target_q1.values())[0], list(target_q2.values())[0])
 
@@ -349,7 +359,8 @@ class TorchTD3Optimizer(TorchOptimizer):
             self.policy_optimizer.zero_grad()
             p_loss.backward()
             self.policy_optimizer.step()
-            ModelUtils.soft_update(self.policy.actor, self.target_q_network, self.tau)
+            ModelUtils.soft_update(self.policy.actor, self.target_actor, self.tau)
+            ModelUtils.soft_update(self.q_network, self.target_q_network, self.tau)
             update_stats["Losses/Policy Loss"] = p_loss.item()
 
         return update_stats
@@ -360,6 +371,7 @@ class TorchTD3Optimizer(TorchOptimizer):
             "Optimizer:target_q_network": self.target_q_network,
             "Optimizer:policy_optimizer": self.policy_optimizer,
             "Optimizer:value_optimizer": self.value_optimizer,
+            "Optimizer:target_actor": self.target_actor,
         }
         for reward_provider in self.reward_signals.values():
             modules.update(reward_provider.get_modules())

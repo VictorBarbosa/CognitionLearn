@@ -132,43 +132,41 @@ class EntityEmbedding(torch.nn.Module):
         if entity_num_max_elements is not None:
             self.entity_num_max_elements = entity_num_max_elements
         self.embedding_size = embedding_size
-        # Initialization scheme from http://www.cs.toronto.edu/~mvolkovs/ICML2020_tfixup.pdf
-        self.self_ent_encoder = LinearEncoder(
-            self.entity_size,
-            1,
-            self.embedding_size,
-            kernel_init=Initialization.Normal,
-            kernel_gain=(0.125 / self.embedding_size) ** 0.5,
-        )
+        self.self_ent_encoder = None
 
     def add_self_embedding(self, size: int) -> None:
         self.self_size = size
-        self.self_ent_encoder = LinearEncoder(
-            self.self_size + self.entity_size,
-            1,
-            self.embedding_size,
-            kernel_init=Initialization.Normal,
-            kernel_gain=(0.125 / self.embedding_size) ** 0.5,
-        )
+        self.self_ent_encoder = None  # Reset encoder
 
     def forward(self, x_self: torch.Tensor, entities: torch.Tensor) -> torch.Tensor:
         num_entities = self.entity_num_max_elements
         if num_entities < 0:
             if exporting_to_onnx.is_exporting():
                 raise UnityTrainerException(
-                    "Trying to export an attention mechanism that doesn't have a set max \
-                    number of elements."
+                    "Trying to export an attention mechanism that doesn't have a set max \n                    number of elements."
                 )
             num_entities = entities.shape[1]
 
-        if self.self_size > 0:
+        if self.self_size > 0 and x_self is not None:
             expanded_self = x_self.reshape(-1, 1, self.self_size)
             expanded_self = torch.cat([expanded_self] * num_entities, dim=1)
             # Concatenate all observations with self
             entities = torch.cat([expanded_self, entities], dim=2)
+
+        if self.self_ent_encoder is None or self.self_ent_encoder.input_size != entities.shape[2]:
+            self.self_ent_encoder = LinearEncoder(
+                entities.shape[2],
+                1,
+                self.embedding_size,
+                kernel_init=Initialization.Normal,
+                kernel_gain=(0.125 / self.embedding_size) ** 0.5,
+            ).to(entities.device)
+
         # Encode entities
         encoded_entities = self.self_ent_encoder(entities)
         return encoded_entities
+
+
 
 
 class ResidualSelfAttention(torch.nn.Module):

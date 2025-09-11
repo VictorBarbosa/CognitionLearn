@@ -115,7 +115,10 @@ class MASACTrainer(OffPolicyTrainer):
             _,
             value_memories,
         ) = self.optimizer.get_trajectory_value_estimates(
-            agent_buffer_trajectory, trajectory.next_obs, trajectory.done_reached
+            agent_buffer_trajectory,
+            trajectory.next_obs,
+            trajectory.next_group_obs,
+            trajectory.done_reached,
         )
         if value_memories is not None:
             agent_buffer_trajectory[BufferKey.CRITIC_MEMORY].set(value_memories)
