@@ -641,6 +641,9 @@ class TrainerSettings(ExportableSettings):
     behavioral_cloning: Optional[BehavioralCloningSettings] = None
     ppo: Optional[Dict] = attr.ib(default=None)
     sac: Optional[Dict] = attr.ib(default=None)
+    td3: Optional[Dict] = attr.ib(default=None)
+    tdsac: Optional[Dict] = attr.ib(default=None)
+    masac: Optional[Dict] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],
