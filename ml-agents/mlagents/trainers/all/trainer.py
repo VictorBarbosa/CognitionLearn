@@ -6,7 +6,6 @@ from mlagents.trainers.ppo.trainer import PPOTrainer
 from mlagents.trainers.sac.trainer import SACTrainer
 from mlagents.trainers.td3.trainer import TD3Trainer
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
-from mlagents.trainers.masac.trainer import MASACTrainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -25,7 +24,6 @@ class AllTrainer(RLTrainer):
         base_settings.pop("sac", None)
         base_settings.pop("td3", None)
         base_settings.pop("tdsac", None)
-        base_settings.pop("masac", None)
         base_settings.pop("trainer_type", None)
 
         # PPO Trainer Setup
@@ -68,17 +66,7 @@ class AllTrainer(RLTrainer):
         tdsac_brain_name = f"{behavior_name}_tdsac"
         self.tdsac_trainer = TDSACTrainer(tdsac_brain_name, reward_buff_cap, tdsac_trainer_settings, training, load, seed, tdsac_artifact_path)
 
-        # MASAC Trainer Setup
-        masac_config = trainer_settings.masac
-        masac_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(masac_full_config, masac_config)
-        masac_full_config["trainer_type"] = "masac"
-        masac_trainer_settings = cattr.structure(masac_full_config, TrainerSettings)
-        masac_artifact_path = os.path.join(artifact_path, "masac")
-        masac_brain_name = f"{behavior_name}_masac"
-        self.masac_trainer = MASACTrainer(masac_brain_name, reward_buff_cap, masac_trainer_settings, training, load, seed, masac_artifact_path)
-
-        self.trainers = [self.ppo_trainer, self.sac_trainer, self.td3_trainer, self.tdsac_trainer, self.masac_trainer]
+        self.trainers = [self.ppo_trainer, self.sac_trainer, self.td3_trainer, self.tdsac_trainer]
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)

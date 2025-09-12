@@ -4,7 +4,6 @@ from mlagents.trainers.ppo.trainer import PPOTrainer
 from mlagents.trainers.sac.trainer import SACTrainer
 from mlagents.trainers.td3.trainer import TD3Trainer
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
-from mlagents.trainers.masac.trainer import MASACTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec, DecisionSteps, ActionTuple
 from mlagents.trainers.action_info import ActionInfo
