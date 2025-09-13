@@ -6,7 +6,7 @@ import os
 import numpy as np
 import json
 
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Dict
 
 import mlagents.trainers
 import mlagents_envs
@@ -20,7 +20,7 @@ from mlagents.trainers.directory_utils import (
 from mlagents.trainers.stats import StatsReporter
 from mlagents.trainers.cli_utils import parser
 from mlagents_envs.environment import UnityEnvironment
-from mlagents.trainers.settings import RunOptions
+from mlagents.trainers.settings import RunOptions, TrainerSettings
 
 from mlagents.trainers.training_status import GlobalTrainingStatus
 from mlagents_envs.base_env import BaseEnv
@@ -97,11 +97,6 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
         if env_settings.env_path is None:
             port = None
 
-        if options.behaviors:
-            trainer_type = list(options.behaviors.values())[0].trainer_type
-        else:
-            trainer_type = "ppo"
-
         env_factory = create_environment_factory(
             env_settings.env_path,
             engine_settings.no_graphics,
@@ -112,7 +107,7 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
             port,
             env_settings.env_args,
             os.path.abspath(run_logs_dir),  # Unity environment requires absolute path
-            trainer_type,
+            options.behaviors,
         )
 
         env_manager = SubprocessEnvManager(env_factory, options, env_settings.num_envs)
@@ -189,7 +184,7 @@ def create_environment_factory(
     start_port: Optional[int],
     env_args: Optional[List[str]],
     log_folder: str,
-    trainer_type: str,
+    behaviors: Dict[str, TrainerSettings],
 ) -> Callable[[int, List[SideChannel]], BaseEnv]:
     def create_unity_environment(
         worker_id: int, side_channels: List[SideChannel]
@@ -197,7 +192,26 @@ def create_environment_factory(
         # Make sure that each environment gets a different seed
         env_seed = seed + worker_id
         
-        specific_log_folder = os.path.join(log_folder, trainer_type)
+        # Determine trainer type based on worker_id for log folder naming
+        # This assumes that the first behavior in the dictionary is the one being trained
+        # by the main trainer.
+        if behaviors:
+            main_behavior_name = list(behaviors.keys())[0]
+            main_trainer_type = behaviors[main_behavior_name].trainer_type
+        else:
+            main_trainer_type = "ppo" # Default if no behaviors are specified
+
+        if main_trainer_type == "all":
+            # AllTrainer uses PPO, SAC, TD3, TDSAC
+            trainer_types_map = [ "sac", "td3", "tdsac","ppo"]
+            trainer_type_for_worker = trainer_types_map[worker_id % len(trainer_types_map)]
+        elif main_trainer_type == "both":
+            # BothTrainer uses PPO and SAC
+            trainer_type_for_worker = "ppo" if worker_id % 2 == 0 else "sac"
+        else:
+            trainer_type_for_worker = main_trainer_type
+
+        specific_log_folder = os.path.join(log_folder, trainer_type_for_worker)
         os.makedirs(specific_log_folder, exist_ok=True) # Ensure directory exists
 
         return UnityEnvironment(
