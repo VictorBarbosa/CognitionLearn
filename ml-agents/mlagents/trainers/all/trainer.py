@@ -6,6 +6,7 @@ from mlagents.trainers.ppo.trainer import PPOTrainer
 from mlagents.trainers.sac.trainer import SACTrainer
 from mlagents.trainers.td3.trainer import TD3Trainer
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
+from mlagents.trainers.hsac.trainer import HSACTrainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -24,6 +25,7 @@ class AllTrainer(RLTrainer):
         base_settings.pop("sac", None)
         base_settings.pop("td3", None)
         base_settings.pop("tdsac", None)
+        base_settings.pop("hsac", None)
         base_settings.pop("trainer_type", None)
 
         # PPO Trainer Setup
@@ -66,7 +68,17 @@ class AllTrainer(RLTrainer):
         tdsac_brain_name = f"{behavior_name}_tdsac"
         self.tdsac_trainer = TDSACTrainer(tdsac_brain_name, reward_buff_cap, tdsac_trainer_settings, training, load, seed, tdsac_artifact_path)
 
-        self.trainers = [self.ppo_trainer, self.sac_trainer, self.td3_trainer, self.tdsac_trainer]
+        # HSAC Trainer Setup
+        hsac_config = trainer_settings.hsac
+        hsac_full_config = copy.deepcopy(base_settings)
+        deep_update_dict(hsac_full_config, hsac_config)
+        hsac_full_config["trainer_type"] = "hsac"
+        hsac_trainer_settings = cattr.structure(hsac_full_config, TrainerSettings)
+        hsac_artifact_path = os.path.join(artifact_path, "hsac")
+        hsac_brain_name = f"{behavior_name}_hsac"
+        self.hsac_trainer = HSACTrainer(hsac_brain_name, reward_buff_cap, hsac_trainer_settings, training, load, seed, hsac_artifact_path)
+
+        self.trainers = [self.ppo_trainer, self.sac_trainer, self.td3_trainer, self.tdsac_trainer, self.hsac_trainer]
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)

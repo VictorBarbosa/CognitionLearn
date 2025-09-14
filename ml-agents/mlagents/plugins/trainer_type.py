@@ -13,6 +13,8 @@ from mlagents.trainers.td3.optimizer_torch import TD3Settings
 from mlagents.trainers.td3.trainer import TD3Trainer
 from mlagents.trainers.tdsac.optimizer_torch import TDSACSettings
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
+from mlagents.trainers.hsac.optimizer_torch import HSACSettings
+from mlagents.trainers.hsac.trainer import HSACTrainer
 from mlagents.trainers.all.trainer import AllTrainer
 from mlagents.trainers.both.trainer import BothTrainer
 from mlagents.trainers.settings import TrainerSettings, HyperparamSettings
@@ -33,6 +35,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             POCATrainer.get_trainer_name(): POCATrainer,
             TD3Trainer.get_trainer_name(): TD3Trainer,
             TDSACTrainer.get_trainer_name(): TDSACTrainer,
+            HSACTrainer.get_trainer_name(): HSACTrainer,
             AllTrainer.get_trainer_name(): AllTrainer,
             BothTrainer.get_trainer_name(): BothTrainer,
         }
@@ -45,6 +48,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             POCATrainer.get_trainer_name(): POCASettings,
             TD3Trainer.get_trainer_name(): TD3Settings,
             TDSACTrainer.get_trainer_name(): TDSACSettings,
+            HSACTrainer.get_trainer_name(): HSACSettings,
             AllTrainer.get_trainer_name(): HyperparamSettings, # Using HyperparamSettings as a placeholder for AllSettings
             BothTrainer.get_trainer_name(): HyperparamSettings,
         }

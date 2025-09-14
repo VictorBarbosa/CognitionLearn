@@ -203,7 +203,7 @@ def create_environment_factory(
 
         if main_trainer_type == "all":
             # AllTrainer uses PPO, SAC, TD3, TDSAC
-            trainer_types_map = [ "sac", "td3", "tdsac","ppo"]
+            trainer_types_map = [ "sac", "td3", "tdsac","hsac","ppo"]
             trainer_type_for_worker = trainer_types_map[worker_id % len(trainer_types_map)]
         elif main_trainer_type == "both":
             # BothTrainer uses PPO and SAC
