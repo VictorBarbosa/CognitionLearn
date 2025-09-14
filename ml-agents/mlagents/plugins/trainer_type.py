@@ -16,7 +16,6 @@ from mlagents.trainers.tdsac.trainer import TDSACTrainer
 from mlagents.trainers.hsac.optimizer_torch import HSACSettings
 from mlagents.trainers.hsac.trainer import HSACTrainer
 from mlagents.trainers.all.trainer import AllTrainer
-from mlagents.trainers.both.trainer import BothTrainer
 from mlagents.trainers.settings import TrainerSettings, HyperparamSettings
 from mlagents_envs import logging_util
 
@@ -37,7 +36,6 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             TDSACTrainer.get_trainer_name(): TDSACTrainer,
             HSACTrainer.get_trainer_name(): HSACTrainer,
             AllTrainer.get_trainer_name(): AllTrainer,
-            BothTrainer.get_trainer_name(): BothTrainer,
         }
     )
     # global all_trainer_settings
@@ -50,7 +48,6 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             TDSACTrainer.get_trainer_name(): TDSACSettings,
             HSACTrainer.get_trainer_name(): HSACSettings,
             AllTrainer.get_trainer_name(): HyperparamSettings, # Using HyperparamSettings as a placeholder for AllSettings
-            BothTrainer.get_trainer_name(): HyperparamSettings,
         }
     )
 
