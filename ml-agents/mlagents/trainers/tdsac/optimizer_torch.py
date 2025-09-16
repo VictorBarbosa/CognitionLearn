@@ -257,7 +257,7 @@ class TorchTDSACOptimizer(TorchSACOptimizer):
                 next_value_memories = None
             
             next_action, _, _ = self.policy.actor.get_action_and_stats(
-                next_obs, sequence_length=self.policy.sequence_length
+                next_obs, memories=next_value_memories, sequence_length=self.policy.sequence_length
             )
 
             target_q1, target_q2 = self.target_q_network(
