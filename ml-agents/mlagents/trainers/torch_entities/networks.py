@@ -190,6 +190,7 @@ class NetworkBody(nn.Module):
             if network_settings.memory is not None
             else 0
         )
+        self.encoded_act_size = encoded_act_size
         self.observation_encoder = ObservationEncoder(
             observation_specs,
             self.h_size,
@@ -239,8 +240,17 @@ class NetworkBody(nn.Module):
         sequence_length: int = 1,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         encoded_self = self.observation_encoder(inputs)
-        if actions is not None:
-            encoded_self = torch.cat([encoded_self, actions], dim=1)
+        if self.encoded_act_size > 0:
+            if actions is None:
+                # If actions are not available, create a placeholder of zeros.
+                # This can happen when the critic is used for value estimation.
+                action_placeholder = torch.zeros(
+                    encoded_self.shape[0], self.encoded_act_size, device=encoded_self.device
+                )
+                encoded_self = torch.cat([encoded_self, action_placeholder], dim=1)
+            else:
+                encoded_self = torch.cat([encoded_self, actions], dim=1)
+
         if isinstance(self._body_endoder, ConditionalEncoder):
             goal = self.observation_encoder.get_goal_encoding(inputs)
             encoding = self._body_endoder(encoded_self, goal)

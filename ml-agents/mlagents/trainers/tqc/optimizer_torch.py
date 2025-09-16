@@ -286,12 +286,12 @@ class TorchTQCOptimizer(TorchOptimizer):
             quantiles_to_keep = self.n_quantiles * 2 - self.n_to_drop
             truncated_quantiles = sorted_quantiles[:, :quantiles_to_keep]
 
-            target_q = truncated_quantiles.mean(dim=1)
+            target_q = truncated_quantiles
             
             # TD target
             ent_term = self._log_ent_coef.continuous.exp() * -next_log_probs.sum(dim=1)
-            target_q += ent_term
-            q_backup = rewards[self.stream_names[0]] + self.gammas[0] * (1 - ModelUtils.list_to_tensor(batch[BufferKey.DONE])) * target_q
+            target_q += ent_term.unsqueeze(1)
+            q_backup = rewards[self.stream_names[0]].unsqueeze(1) + self.gammas[0] * (1 - ModelUtils.list_to_tensor(batch[BufferKey.DONE])).unsqueeze(1) * target_q
 
         q1_out, q2_out = self.q_network(current_obs, actions.continuous_tensor, memories=memories)
         q1_quantiles = q1_out[self.stream_names[0]]
@@ -311,8 +311,8 @@ class TorchTQCOptimizer(TorchOptimizer):
         
         q1_policy, q2_policy = self.q_network(current_obs, sampled_actions.continuous_tensor, memories=memories)
         # Take mean over quantiles to get a single Q value
-        q1_policy_mean = q1_policy[self.stream_names[0]].mean(dim=2).squeeze()
-        q2_policy_mean = q2_policy[self.stream_names[0]].mean(dim=2).squeeze()
+        q1_policy_mean = q1_policy[self.stream_names[0]].mean(dim=1).squeeze()
+        q2_policy_mean = q2_policy[self.stream_names[0]].mean(dim=1).squeeze()
         min_q = torch.min(q1_policy_mean, q2_policy_mean)
 
         policy_loss = (self._log_ent_coef.continuous.exp() * log_probs.sum(dim=1) - min_q).mean()
