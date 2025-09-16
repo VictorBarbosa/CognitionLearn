@@ -9,7 +9,7 @@ from mlagents.trainers.optimizer.torch_optimizer import TorchOptimizer
 from mlagents.trainers.trainer.off_policy_trainer import OffPolicyTrainer
 from mlagents.trainers.policy.torch_policy import TorchPolicy
 from mlagents.trainers.policy.policy import Policy
-from mlagents.trainers.hsac.optimizer_torch import TorchHSACOptimizer, HSACSettings
+from mlagents.trainers.tqc.optimizer_torch import TorchTQCOptimizer, TQCSettings
 from mlagents.trainers.trajectory import Trajectory, ObsUtil
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents.trainers.settings import TrainerSettings
@@ -20,12 +20,12 @@ logger = get_logger(__name__)
 
 BUFFER_TRUNCATE_PERCENT = 0.8
 
-TRAINER_NAME = "hsac"
+TRAINER_NAME = "tqc"
 
 
-class HSACTrainer(OffPolicyTrainer):
+class TQCTrainer(OffPolicyTrainer):
     """
-    The HSACTrainer is an implementation of the HSAC algorithm, with support
+    The TQCTrainer is an implementation of the TQC algorithm, with support
     for discrete actions and recurrent networks.
     """
 
@@ -40,7 +40,7 @@ class HSACTrainer(OffPolicyTrainer):
         artifact_path: str,
     ):
         """
-        Responsible for collecting experiences and training HSAC model.
+        Responsible for collecting experiences and training TQC model.
         :param behavior_name: The name of the behavior associated with trainer config
         :param reward_buff_cap: Max reward history to track in the reward buffer
         :param trainer_settings: The parameters for the trainer.
@@ -61,9 +61,9 @@ class HSACTrainer(OffPolicyTrainer):
 
         self.seed = seed
         self.policy: TorchPolicy = None  # type: ignore
-        self.optimizer: TorchHSACOptimizer = None  # type: ignore
-        self.hyperparameters: HSACSettings = cast(
-            HSACSettings, trainer_settings.hyperparameters
+        self.optimizer: TorchTQCOptimizer = None  # type: ignore
+        self.hyperparameters: TQCSettings = cast(
+            TQCSettings, trainer_settings.hyperparameters
         )
         self._step = 0
 
@@ -138,7 +138,7 @@ class HSACTrainer(OffPolicyTrainer):
             self._update_end_episode_stats(agent_id, self.optimizer)
 
     def create_optimizer(self) -> TorchOptimizer:
-        return TorchHSACOptimizer(  # type: ignore
+        return TorchTQCOptimizer(  # type: ignore
             cast(TorchPolicy, self.policy), self.trainer_settings  # type: ignore
         )  # type: ignore
 
@@ -146,7 +146,7 @@ class HSACTrainer(OffPolicyTrainer):
         self, parsed_behavior_id: BehaviorIdentifiers, behavior_spec: BehaviorSpec
     ) -> TorchPolicy:
         """
-        Creates a policy with a PyTorch backend and HSAC hyperparameters
+        Creates a policy with a PyTorch backend and TQC hyperparameters
         :param parsed_behavior_id:
         :param behavior_spec: specifications for policy construction
         :return policy

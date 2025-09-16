@@ -643,9 +643,8 @@ class TrainerSettings(ExportableSettings):
     sac: Optional[Dict] = attr.ib(default=None)
     td3: Optional[Dict] = attr.ib(default=None)
     tdsac: Optional[Dict] = attr.ib(default=None)
-    hsac: Optional[Dict] = attr.ib(default=None)
-    bisac: Optional[Dict] = attr.ib(default=None)
-    lsac: Optional[Dict] = attr.ib(default=None)
+    tqc: Optional[Dict] = attr.ib(default=None)
+    poca: Optional[Dict] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],
@@ -831,6 +830,7 @@ class EnvironmentSettings:
     restarts_rate_limit_period_s: int = parser.get_default(
         "restarts_rate_limit_period_s"
     )
+    worker_trainer_types: Optional[List[str]] = None
 
     @num_envs.validator
     def validate_num_envs(self, attribute, value):

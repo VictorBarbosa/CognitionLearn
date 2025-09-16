@@ -98,16 +98,12 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
             port = None
 
         env_factory = create_environment_factory(
-            env_settings.env_path,
-            engine_settings.no_graphics,
-            engine_settings.no_graphics_monitor,
+            engine_settings,
             run_seed,
             num_areas,
-            env_settings.timeout_wait,
-            port,
-            env_settings.env_args,
             os.path.abspath(run_logs_dir),  # Unity environment requires absolute path
             options.behaviors,
+            env_settings,
         )
 
         env_manager = SubprocessEnvManager(env_factory, options, env_settings.num_envs)
@@ -175,23 +171,19 @@ def write_timing_tree(output_dir: str) -> None:
 
 
 def create_environment_factory(
-    env_path: Optional[str],
-    no_graphics: bool,
-    no_graphics_monitor: bool,
+    engine_settings: "EngineSettings",
     seed: int,
     num_areas: int,
-    timeout_wait: int,
-    start_port: Optional[int],
-    env_args: Optional[List[str]],
     log_folder: str,
     behaviors: Dict[str, TrainerSettings],
+    env_settings: "EnvironmentSettings",
 ) -> Callable[[int, List[SideChannel]], BaseEnv]:
     def create_unity_environment(
         worker_id: int, side_channels: List[SideChannel]
     ) -> UnityEnvironment:
         # Make sure that each environment gets a different seed
         env_seed = seed + worker_id
-        
+
         # Determine trainer type based on worker_id for log folder naming
         # This assumes that the first behavior in the dictionary is the one being trained
         # by the main trainer.
@@ -199,30 +191,37 @@ def create_environment_factory(
             main_behavior_name = list(behaviors.keys())[0]
             main_trainer_type = behaviors[main_behavior_name].trainer_type
         else:
-            main_trainer_type = "ppo" # Default if no behaviors are specified
+            main_trainer_type = "ppo"  # Default if no behaviors are specified
 
-        if main_trainer_type == "all":
+        if env_settings.worker_trainer_types:
+            trainer_types_map = env_settings.worker_trainer_types
+            trainer_type_for_worker = trainer_types_map[
+                worker_id % len(trainer_types_map)
+            ]
+        elif main_trainer_type == "all":
             # AllTrainer uses PPO, SAC, TD3, TDSAC
-            trainer_types_map = [  "td3", "tdsac","hsac","sac","ppo"]
-            trainer_type_for_worker = trainer_types_map[worker_id % len(trainer_types_map)]
+            trainer_types_map = ["td3", "tdsac", "tqc", "sac", "ppo"]
+            trainer_type_for_worker = trainer_types_map[
+                worker_id % len(trainer_types_map)
+            ]
         else:
             trainer_type_for_worker = main_trainer_type
 
         specific_log_folder = os.path.join(log_folder, trainer_type_for_worker)
-        os.makedirs(specific_log_folder, exist_ok=True) # Ensure directory exists
+        os.makedirs(specific_log_folder, exist_ok=True)  # Ensure directory exists
 
         return UnityEnvironment(
-            file_name=env_path,
+            file_name=env_settings.env_path,
             worker_id=worker_id,
             seed=env_seed,
             num_areas=num_areas,
-            no_graphics=no_graphics,
-            no_graphics_monitor=no_graphics_monitor,
-            base_port=start_port,
-            additional_args=env_args,
+            no_graphics=engine_settings.no_graphics,
+            no_graphics_monitor=engine_settings.no_graphics_monitor,
+            base_port=env_settings.base_port,
+            additional_args=env_settings.env_args,
             side_channels=side_channels,
             log_folder=specific_log_folder,
-            timeout_wait=timeout_wait,
+            timeout_wait=env_settings.timeout_wait,
         )
 
     return create_unity_environment

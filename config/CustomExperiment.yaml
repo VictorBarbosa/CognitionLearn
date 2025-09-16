@@ -1,0 +1,64 @@
+# Exemplo de configuração COMPLETA para usar diferentes trainers em workers paralelos.
+
+worker_trainer_types: [ppo, sac, tqc, ppo]
+
+env_settings:
+  # Vamos criar 4 ambientes paralelos (workers)
+  num_envs: 4
+
+behaviors:
+  MyCustomBehavior:
+    # Usar 'all' como trainer_type principal é uma boa prática quando se
+    # mistura algoritmos, pois ele espera sub-configurações.
+    trainer_type: all
+
+    # Configurações globais (podem ser sobrescritas abaixo)
+    max_steps: 500000
+    time_horizon: 64
+    summary_freq: 10000
+
+    # --- Configuração para cada trainer especificado em worker_trainer_types ---
+
+    ppo:
+      trainer_type: ppo
+      hyperparameters:
+        batch_size: 1024
+        buffer_size: 10240
+        learning_rate: 0.0003
+        beta: 0.005
+        epsilon: 0.2
+        lambd: 0.95
+        num_epoch: 3
+      network_settings:
+        normalize: false
+        hidden_units: 256
+        num_layers: 2
+
+    sac:
+      trainer_type: sac
+      hyperparameters:
+        batch_size: 256
+        buffer_size: 50000
+        learning_rate: 0.0003
+        tau: 0.005
+        init_entcoef: 0.5
+      network_settings:
+        normalize: false
+        hidden_units: 256
+        num_layers: 2
+
+    tqc:
+      trainer_type: tqc
+      hyperparameters:
+        batch_size: 256
+        buffer_size: 50000
+        learning_rate: 0.0003
+        tau: 0.005
+        init_entcoef: 0.5
+        # Parâmetros específicos do TQC
+        n_quantiles: 25
+        n_to_drop: 2
+      network_settings:
+        normalize: false
+        hidden_units: 256
+        num_layers: 2
