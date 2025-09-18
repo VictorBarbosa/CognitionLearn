@@ -22,64 +22,83 @@ class AllTrainer(RLTrainer):
         self.seed = seed
         
         base_settings = trainer_settings.as_dict()
-        base_settings.pop("ppo", None)
-        base_settings.pop("sac", None)
-        base_settings.pop("td3", None)
-        base_settings.pop("tdsac", None)
-        base_settings.pop("tqc", None)
-        base_settings.pop("trainer_type", None)
+        # Pop all possible trainer keys to create a clean base config
+        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "trainer_type"]:
+            base_settings.pop(trainer_name, None)
+
+        self.trainers = []
 
         # PPO Trainer Setup
-        ppo_config = trainer_settings.ppo
-        ppo_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(ppo_full_config, ppo_config)
-        ppo_full_config["trainer_type"] = "ppo"
-        ppo_trainer_settings = cattr.structure(ppo_full_config, TrainerSettings)
-        ppo_artifact_path = os.path.join(artifact_path, "ppo")
-        ppo_brain_name = f"{behavior_name}_ppo"
-        self.ppo_trainer = PPOTrainer(ppo_brain_name, reward_buff_cap, ppo_trainer_settings, training, load, seed, ppo_artifact_path)
+        if hasattr(trainer_settings, "ppo") and trainer_settings.ppo is not None:
+            ppo_config = cattr.unstructure(trainer_settings.ppo)
+            ppo_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(ppo_full_config, ppo_config)
+            ppo_full_config["trainer_type"] = "ppo"
+            ppo_trainer_settings = cattr.structure(ppo_full_config, TrainerSettings)
+            ppo_artifact_path = os.path.join(artifact_path, "ppo")
+            ppo_brain_name = f"{behavior_name}_ppo"
+            self.ppo_trainer = PPOTrainer(ppo_brain_name, reward_buff_cap, ppo_trainer_settings, training, load, seed, ppo_artifact_path)
+            self.trainers.append(self.ppo_trainer)
 
         # SAC Trainer Setup
-        sac_config = trainer_settings.sac
-        sac_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(sac_full_config, sac_config)
-        sac_full_config["trainer_type"] = "sac"
-        sac_trainer_settings = cattr.structure(sac_full_config, TrainerSettings)
-        sac_artifact_path = os.path.join(artifact_path, "sac")
-        sac_brain_name = f"{behavior_name}_sac"
-        self.sac_trainer = SACTrainer(sac_brain_name, reward_buff_cap, sac_trainer_settings, training, load, seed, sac_artifact_path)
+        if hasattr(trainer_settings, "sac") and trainer_settings.sac is not None:
+            sac_config = cattr.unstructure(trainer_settings.sac)
+            sac_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(sac_full_config, sac_config)
+            sac_full_config["trainer_type"] = "sac"
+            sac_trainer_settings = cattr.structure(sac_full_config, TrainerSettings)
+            sac_artifact_path = os.path.join(artifact_path, "sac")
+            sac_brain_name = f"{behavior_name}_sac"
+            self.sac_trainer = SACTrainer(sac_brain_name, reward_buff_cap, sac_trainer_settings, training, load, seed, sac_artifact_path)
+            self.trainers.append(self.sac_trainer)
 
         # TD3 Trainer Setup
-        td3_config = trainer_settings.td3
-        td3_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(td3_full_config, td3_config)
-        td3_full_config["trainer_type"] = "td3"
-        td3_trainer_settings = cattr.structure(td3_full_config, TrainerSettings)
-        td3_artifact_path = os.path.join(artifact_path, "td3")
-        td3_brain_name = f"{behavior_name}_td3"
-        self.td3_trainer = TD3Trainer(td3_brain_name, reward_buff_cap, td3_trainer_settings, training, load, seed, td3_artifact_path)
+        if hasattr(trainer_settings, "td3") and trainer_settings.td3 is not None:
+            td3_config = cattr.unstructure(trainer_settings.td3)
+            td3_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(td3_full_config, td3_config)
+            td3_full_config["trainer_type"] = "td3"
+            td3_trainer_settings = cattr.structure(td3_full_config, TrainerSettings)
+            td3_artifact_path = os.path.join(artifact_path, "td3")
+            td3_brain_name = f"{behavior_name}_td3"
+            self.td3_trainer = TD3Trainer(td3_brain_name, reward_buff_cap, td3_trainer_settings, training, load, seed, td3_artifact_path)
+            self.trainers.append(self.td3_trainer)
 
         # TDSAC Trainer Setup
-        tdsac_config = trainer_settings.tdsac
-        tdsac_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(tdsac_full_config, tdsac_config)
-        tdsac_full_config["trainer_type"] = "tdsac"
-        tdsac_trainer_settings = cattr.structure(tdsac_full_config, TrainerSettings)
-        tdsac_artifact_path = os.path.join(artifact_path, "tdsac")
-        tdsac_brain_name = f"{behavior_name}_tdsac"
-        self.tdsac_trainer = TDSACTrainer(tdsac_brain_name, reward_buff_cap, tdsac_trainer_settings, training, load, seed, tdsac_artifact_path)
+        if hasattr(trainer_settings, "tdsac") and trainer_settings.tdsac is not None:
+            tdsac_config = cattr.unstructure(trainer_settings.tdsac)
+            tdsac_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(tdsac_full_config, tdsac_config)
+            tdsac_full_config["trainer_type"] = "tdsac"
+            tdsac_trainer_settings = cattr.structure(tdsac_full_config, TrainerSettings)
+            tdsac_artifact_path = os.path.join(artifact_path, "tdsac")
+            tdsac_brain_name = f"{behavior_name}_tdsac"
+            self.tdsac_trainer = TDSACTrainer(tdsac_brain_name, reward_buff_cap, tdsac_trainer_settings, training, load, seed, tdsac_artifact_path)
+            self.trainers.append(self.tdsac_trainer)
 
         # TQC Trainer Setup
-        tqc_config = trainer_settings.tqc
-        tqc_full_config = copy.deepcopy(base_settings)
-        deep_update_dict(tqc_full_config, tqc_config)
-        tqc_full_config["trainer_type"] = "tqc"
-        tqc_trainer_settings = cattr.structure(tqc_full_config, TrainerSettings)
-        tqc_artifact_path = os.path.join(artifact_path, "tqc")
-        tqc_brain_name = f"{behavior_name}_tqc"
-        self.tqc_trainer = TQCTrainer(tqc_brain_name, reward_buff_cap, tqc_trainer_settings, training, load, seed, tqc_artifact_path)
-
-        self.trainers = [self.ppo_trainer, self.sac_trainer, self.td3_trainer, self.tdsac_trainer, self.tqc_trainer]
+        if hasattr(trainer_settings, "tqc") and trainer_settings.tqc is not None:
+            tqc_config = cattr.unstructure(trainer_settings.tqc)
+            tqc_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(tqc_full_config, tqc_config)
+            tqc_full_config["trainer_type"] = "tqc"
+            tqc_trainer_settings = cattr.structure(tqc_full_config, TrainerSettings)
+            tqc_artifact_path = os.path.join(artifact_path, "tqc")
+            tqc_brain_name = f"{behavior_name}_tqc"
+            self.tqc_trainer = TQCTrainer(tqc_brain_name, reward_buff_cap, tqc_trainer_settings, training, load, seed, tqc_artifact_path)
+            self.trainers.append(self.tqc_trainer)
+            
+        # POCA Trainer Setup
+        if hasattr(trainer_settings, "poca") and trainer_settings.poca is not None:
+            poca_config = cattr.unstructure(trainer_settings.poca)
+            poca_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(poca_full_config, poca_config)
+            poca_full_config["trainer_type"] = "poca"
+            poca_trainer_settings = cattr.structure(poca_full_config, TrainerSettings)
+            poca_artifact_path = os.path.join(artifact_path, "poca")
+            poca_brain_name = f"{behavior_name}_poca"
+            self.poca_trainer = POCATrainer(poca_brain_name, reward_buff_cap, poca_trainer_settings, training, load, seed, poca_artifact_path)
+            self.trainers.append(self.poca_trainer)
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)
