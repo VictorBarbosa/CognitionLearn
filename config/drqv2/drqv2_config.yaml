@@ -1,0 +1,26 @@
+'''behaviors:
+  3DBall:
+    trainer_type: drqv2
+    hyperparameters:
+      learning_rate: 0.0003
+      learning_rate_schedule: constant
+      batch_size: 256
+      buffer_size: 50000
+      buffer_init_steps: 1000
+      tau: 0.005
+      steps_per_update: 1.0
+      save_replay_buffer: false
+      init_entcoef: 1.0
+      image_pad: 4
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+      memory:
+        sequence_length: 64
+        memory_size: 256
+    max_steps: 500000
+    time_horizon: 64
+    summary_freq: 10000
+'''

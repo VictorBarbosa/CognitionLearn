@@ -8,6 +8,7 @@ from mlagents.trainers.td3.trainer import TD3Trainer
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
 from mlagents.trainers.tqc.trainer import TQCTrainer
 from mlagents.trainers.poca.trainer import POCATrainer
+from mlagents.trainers.drqv2.trainer import DrQv2Trainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -23,7 +24,7 @@ class AllTrainer(RLTrainer):
         
         base_settings = trainer_settings.as_dict()
         # Pop all possible trainer keys to create a clean base config
-        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "trainer_type"]:
+        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "trainer_type"]:
             base_settings.pop(trainer_name, None)
 
         self.trainers = []
@@ -99,6 +100,18 @@ class AllTrainer(RLTrainer):
             poca_brain_name = f"{behavior_name}_poca"
             self.poca_trainer = POCATrainer(poca_brain_name, reward_buff_cap, poca_trainer_settings, training, load, seed, poca_artifact_path)
             self.trainers.append(self.poca_trainer)
+            
+        # DrQv2 Trainer Setup
+        if hasattr(trainer_settings, "drqv2") and trainer_settings.drqv2 is not None:
+            drqv2_config = cattr.unstructure(trainer_settings.drqv2)
+            drqv2_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(drqv2_full_config, drqv2_config)
+            drqv2_full_config["trainer_type"] = "drqv2"
+            drqv2_trainer_settings = cattr.structure(drqv2_full_config, TrainerSettings)
+            drqv2_artifact_path = os.path.join(artifact_path, "drqv2")
+            drqv2_brain_name = f"{behavior_name}_drqv2"
+            self.drqv2_trainer = DrQv2Trainer(drqv2_brain_name, reward_buff_cap, drqv2_trainer_settings, training, load, seed, drqv2_artifact_path)
+            self.trainers.append(self.drqv2_trainer)
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)

@@ -15,6 +15,8 @@ from mlagents.trainers.tdsac.optimizer_torch import TDSACSettings
 from mlagents.trainers.tdsac.trainer import TDSACTrainer
 from mlagents.trainers.tqc.optimizer_torch import TQCSettings
 from mlagents.trainers.tqc.trainer import TQCTrainer
+from mlagents.trainers.drqv2.optimizer_torch import DrQv2Settings
+from mlagents.trainers.drqv2.trainer import DrQv2Trainer
 from mlagents.trainers.all.trainer import AllTrainer
 from mlagents.trainers.settings import TrainerSettings, HyperparamSettings
 from mlagents_envs import logging_util
@@ -35,6 +37,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             TD3Trainer.get_trainer_name(): TD3Trainer,
             TDSACTrainer.get_trainer_name(): TDSACTrainer,
             TQCTrainer.get_trainer_name(): TQCTrainer,
+            DrQv2Trainer.get_trainer_name(): DrQv2Trainer,
             AllTrainer.get_trainer_name(): AllTrainer,
         }
     )
@@ -47,6 +50,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             TD3Trainer.get_trainer_name(): TD3Settings,
             TDSACTrainer.get_trainer_name(): TDSACSettings,
             TQCTrainer.get_trainer_name(): TQCSettings,
+            DrQv2Trainer.get_trainer_name(): DrQv2Settings,
             AllTrainer.get_trainer_name(): HyperparamSettings, # Using HyperparamSettings as a placeholder for AllSettings
         }
     )

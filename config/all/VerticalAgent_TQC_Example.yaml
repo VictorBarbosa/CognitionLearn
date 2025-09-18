@@ -1,9 +1,9 @@
 env_settings:
-  # Vamos criar 6 ambientes paralelos (workers) para demonstrar todos os trainers
-  num_envs: 6
+  # Vamos criar 7 ambientes paralelos (workers) para demonstrar todos os trainers
+  num_envs: 7
 
 # Define qual trainer cada worker usará.
-worker_trainer_types: [ppo, sac, tqc, td3, tdsac, poca]
+worker_trainer_types: [ppo, sac, tqc, td3, tdsac, poca, drqv2]
 
 default_settings: null
 behaviors:
@@ -160,6 +160,27 @@ behaviors:
         lambd: 0.95
         num_epoch: 3
         learning_rate_schedule: linear
+      network_settings:
+        normalize: true
+        hidden_units: 128
+        num_layers: 2
+        memory:
+          memory_size: 128
+          sequence_length: 64
+
+    drqv2:
+      trainer_type: drqv2
+      hyperparameters:
+        learning_rate: 0.001
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 100000
+        buffer_init_steps: 10000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        init_entcoef: 0.1
+        image_pad: 4
       network_settings:
         normalize: true
         hidden_units: 128
