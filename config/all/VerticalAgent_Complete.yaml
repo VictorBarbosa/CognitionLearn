@@ -2,16 +2,16 @@
 
 env_settings:
   env_path: /Users/victorbarbosa/git/UNITY Web/UnityStarshipLaunchigLanding/MAC/App
-  # Vamos criar 7 ambientes para mapear cada um para um trainer diferente
-  num_envs: 7
-  worker_trainer_types: [ppo, sac, td3, tdsac, tqc, poca, drqv2]
+  # Vamos criar 8 ambientes para mapear cada um para um trainer diferente
+  num_envs: 8
+  worker_trainer_types: [ppo, sac, td3, tdsac, tqc, poca, drqv2, dcac]
   num_areas: 1
   base_port: 5005
   timeout_wait: 60
   seed: -1
 
 # Atribui um trainer específico para cada worker. A ordem é importante.
-worker_trainer_types: [ppo, sac, td3, tdsac, tqc, poca, drqv2]
+worker_trainer_types: [ppo, sac, td3, tdsac, tqc, poca, drqv2, dcac]
 
 default_settings: null
 
@@ -132,6 +132,20 @@ behaviors:
         save_replay_buffer: false
         init_entcoef: 0.1
         image_pad: 4
+
+    dcac:
+      trainer_type: dcac
+      hyperparameters:
+        learning_rate: 0.001
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 100000
+        buffer_init_steps: 10000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: false
+        init_entcoef: 0.1
+        destructive_threshold: 0.0
 
 # As configurações abaixo são aplicadas a todos os ambientes
 engine_settings:
