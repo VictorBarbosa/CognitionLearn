@@ -146,6 +146,21 @@ behaviors:
         save_replay_buffer: false
         init_entcoef: 0.1
         destructive_threshold: 0.0
+    crossq:
+      trainer_type: crossq
+      hyperparameters:
+        learning_rate: 0.001
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 100000
+        buffer_init_steps: 10000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: false
+        policy_delay: 2
+        target_policy_noise: 0.2
+        noise_clip: 0.5
+
 
 # As configurações abaixo são aplicadas a todos os ambientes
 engine_settings:

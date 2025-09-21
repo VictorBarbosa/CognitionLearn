@@ -647,6 +647,7 @@ class TrainerSettings(ExportableSettings):
     poca: Optional[Dict] = attr.ib(default=None)
     drqv2: Optional[Dict] = attr.ib(default=None)
     dcac: Optional[Dict] = attr.ib(default=None)
+    crossq: Optional[Dict] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],

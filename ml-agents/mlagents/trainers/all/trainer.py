@@ -10,6 +10,7 @@ from mlagents.trainers.tqc.trainer import TQCTrainer
 from mlagents.trainers.poca.trainer import POCATrainer
 from mlagents.trainers.drqv2.trainer import DrQv2Trainer
 from mlagents.trainers.dcac.trainer import DCACTrainer
+from mlagents.trainers.crossq.trainer import CrossQTrainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -25,7 +26,7 @@ class AllTrainer(RLTrainer):
         
         base_settings = trainer_settings.as_dict()
         # Pop all possible trainer keys to create a clean base config
-        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "trainer_type"]:
+        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "crossq", "trainer_type"]:
             base_settings.pop(trainer_name, None)
 
         self.trainers = []
@@ -125,6 +126,18 @@ class AllTrainer(RLTrainer):
             dcac_brain_name = f"{behavior_name}_dcac"
             self.dcac_trainer = DCACTrainer(dcac_brain_name, reward_buff_cap, dcac_trainer_settings, training, load, seed, dcac_artifact_path)
             self.trainers.append(self.dcac_trainer)
+
+        # CrossQ Trainer Setup
+        if hasattr(trainer_settings, "crossq") and trainer_settings.crossq is not None:
+            crossq_config = cattr.unstructure(trainer_settings.crossq)
+            crossq_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(crossq_full_config, crossq_config)
+            crossq_full_config["trainer_type"] = "crossq"
+            crossq_trainer_settings = cattr.structure(crossq_full_config, TrainerSettings)
+            crossq_artifact_path = os.path.join(artifact_path, "crossq")
+            crossq_brain_name = f"{behavior_name}_crossq"
+            self.crossq_trainer = CrossQTrainer(crossq_brain_name, reward_buff_cap, crossq_trainer_settings, training, load, seed, crossq_artifact_path)
+            self.trainers.append(self.crossq_trainer)
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)
