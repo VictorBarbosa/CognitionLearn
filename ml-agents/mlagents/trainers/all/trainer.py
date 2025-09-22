@@ -11,6 +11,9 @@ from mlagents.trainers.poca.trainer import POCATrainer
 from mlagents.trainers.drqv2.trainer import DrQv2Trainer
 from mlagents.trainers.dcac.trainer import DCACTrainer
 from mlagents.trainers.crossq.trainer import CrossQTrainer
+from mlagents.trainers.ppo_et.trainer import PPOETTrainer
+from mlagents.trainers.ppo_ce.trainer import PPOCETrainer
+from mlagents.trainers.sac_ae.trainer import SACAETrainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -26,7 +29,7 @@ class AllTrainer(RLTrainer):
         
         base_settings = trainer_settings.as_dict()
         # Pop all possible trainer keys to create a clean base config
-        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "crossq", "trainer_type"]:
+        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "crossq","ppo_et", "ppo_ce", "sac_ae", "trainer_type"]:
             base_settings.pop(trainer_name, None)
 
         self.trainers = []
@@ -138,6 +141,42 @@ class AllTrainer(RLTrainer):
             crossq_brain_name = f"{behavior_name}_crossq"
             self.crossq_trainer = CrossQTrainer(crossq_brain_name, reward_buff_cap, crossq_trainer_settings, training, load, seed, crossq_artifact_path)
             self.trainers.append(self.crossq_trainer)
+
+        # PPO-ET Trainer Setup
+        if hasattr(trainer_settings, "ppo_et") and trainer_settings.ppo_et is not None:
+            ppo_et_config = cattr.unstructure(trainer_settings.ppo_et)
+            ppo_et_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(ppo_et_full_config, ppo_et_config)
+            ppo_et_full_config["trainer_type"] = "ppo_et"
+            ppo_et_trainer_settings = cattr.structure(ppo_et_full_config, TrainerSettings)
+            ppo_et_artifact_path = os.path.join(artifact_path, "ppo_et")
+            ppo_et_brain_name = f"{behavior_name}_ppo_et"
+            self.ppo_et_trainer = PPOETTrainer(ppo_et_brain_name, reward_buff_cap, ppo_et_trainer_settings, training, load, seed, ppo_et_artifact_path)
+            self.trainers.append(self.ppo_et_trainer)
+
+        # PPO-CE Trainer Setup
+        if hasattr(trainer_settings, "ppo_ce") and trainer_settings.ppo_ce is not None:
+            ppo_ce_config = cattr.unstructure(trainer_settings.ppo_ce)
+            ppo_ce_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(ppo_ce_full_config, ppo_ce_config)
+            ppo_ce_full_config["trainer_type"] = "ppo_ce"
+            ppo_ce_trainer_settings = cattr.structure(ppo_ce_full_config, TrainerSettings)
+            ppo_ce_artifact_path = os.path.join(artifact_path, "ppo_ce")
+            ppo_ce_brain_name = f"{behavior_name}_ppo_ce"
+            self.ppo_ce_trainer = PPOCETrainer(ppo_ce_brain_name, reward_buff_cap, ppo_ce_trainer_settings, training, load, seed, ppo_ce_artifact_path)
+            self.trainers.append(self.ppo_ce_trainer)
+
+        # SAC-AE Trainer Setup
+        if hasattr(trainer_settings, "sac_ae") and trainer_settings.sac_ae is not None:
+            sac_ae_config = cattr.unstructure(trainer_settings.sac_ae)
+            sac_ae_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(sac_ae_full_config, sac_ae_config)
+            sac_ae_full_config["trainer_type"] = "sac_ae"
+            sac_ae_trainer_settings = cattr.structure(sac_ae_full_config, TrainerSettings)
+            sac_ae_artifact_path = os.path.join(artifact_path, "sac_ae")
+            sac_ae_brain_name = f"{behavior_name}_sac_ae"
+            self.sac_ae_trainer = SACAETrainer(sac_ae_brain_name, reward_buff_cap, sac_ae_trainer_settings, training, load, seed, sac_ae_artifact_path)
+            self.trainers.append(self.sac_ae_trainer)
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)

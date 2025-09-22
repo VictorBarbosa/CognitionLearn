@@ -648,6 +648,10 @@ class TrainerSettings(ExportableSettings):
     drqv2: Optional[Dict] = attr.ib(default=None)
     dcac: Optional[Dict] = attr.ib(default=None)
     crossq: Optional[Dict] = attr.ib(default=None)
+    # Algoritmos personalizados
+    ppo_et: Optional[Dict] = attr.ib(default=None)
+    ppo_ce: Optional[Dict] = attr.ib(default=None)
+    sac_ae: Optional[Dict] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],
