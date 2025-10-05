@@ -652,6 +652,7 @@ class TrainerSettings(ExportableSettings):
     ppo_et: Optional[Dict] = attr.ib(default=None)
     ppo_ce: Optional[Dict] = attr.ib(default=None)
     sac_ae: Optional[Dict] = attr.ib(default=None)
+    dreamerv3: Optional[Dict] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],

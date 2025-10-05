@@ -14,6 +14,7 @@ from mlagents.trainers.crossq.trainer import CrossQTrainer
 from mlagents.trainers.ppo_et.trainer import PPOETTrainer
 from mlagents.trainers.ppo_ce.trainer import PPOCETrainer
 from mlagents.trainers.sac_ae.trainer import SACAETrainer
+from mlagents.trainers.dreamerv3.trainer import DreamerV3Trainer
 from mlagents.trainers.trainer.rl_trainer import RLTrainer
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents_envs.base_env import BehaviorSpec
@@ -29,7 +30,7 @@ class AllTrainer(RLTrainer):
         
         base_settings = trainer_settings.as_dict()
         # Pop all possible trainer keys to create a clean base config
-        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "crossq","ppo_et", "ppo_ce", "sac_ae", "trainer_type"]:
+        for trainer_name in ["ppo", "sac", "td3", "tdsac", "tqc", "poca", "drqv2", "dcac", "crossq","ppo_et", "ppo_ce", "sac_ae", "dreamerv3", "trainer_type"]:
             base_settings.pop(trainer_name, None)
 
         self.trainers = []
@@ -177,6 +178,18 @@ class AllTrainer(RLTrainer):
             sac_ae_brain_name = f"{behavior_name}_sac_ae"
             self.sac_ae_trainer = SACAETrainer(sac_ae_brain_name, reward_buff_cap, sac_ae_trainer_settings, training, load, seed, sac_ae_artifact_path)
             self.trainers.append(self.sac_ae_trainer)
+
+        # DreamerV3 Trainer Setup
+        if hasattr(trainer_settings, "dreamerv3") and trainer_settings.dreamerv3 is not None:
+            dreamerv3_config = cattr.unstructure(trainer_settings.dreamerv3)
+            dreamerv3_full_config = copy.deepcopy(base_settings)
+            deep_update_dict(dreamerv3_full_config, dreamerv3_config)
+            dreamerv3_full_config["trainer_type"] = "dreamerv3"
+            dreamerv3_trainer_settings = cattr.structure(dreamerv3_full_config, TrainerSettings)
+            dreamerv3_artifact_path = os.path.join(artifact_path, "dreamerv3")
+            dreamerv3_brain_name = f"{behavior_name}_dreamerv3"
+            self.dreamerv3_trainer = DreamerV3Trainer(dreamerv3_brain_name, reward_buff_cap, dreamerv3_trainer_settings, training, load, seed, dreamerv3_artifact_path)
+            self.trainers.append(self.dreamerv3_trainer)
 
     def _is_ready_update(self):
         return any(trainer._is_ready_update() for trainer in self.trainers)
