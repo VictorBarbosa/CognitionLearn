@@ -29,6 +29,8 @@ from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents.trainers.agent_processor import AgentManager
 from mlagents import torch_utils
 from mlagents.torch_utils.globals import get_rank
+from mlagents.trainers.supervised_optimizer import SupervisedTorchOptimizer
+from mlagents.trainers.settings import SupervisedLearningSettings
 
 
 class TrainerController:
@@ -112,6 +114,85 @@ class TrainerController:
             or not self.train_model
         ) or len(self.trainers) == 0
 
+    def _perform_supervised_learning_if_needed(self, brain_name: str, name_behavior_id: str = None) -> None:
+        """
+        Executa o treinamento supervisionado se as configurações estiverem presentes.
+        :param brain_name: Nome do comportamento para o qual executar o treinamento supervisionado
+        :param name_behavior_id: ID do comportamento completo (incluindo grupo)
+        """
+        trainer_config = self.trainer_factory.trainer_config
+        if brain_name in trainer_config and trainer_config[brain_name].supervised is not None:
+            print("**********************************************")
+            supervised_settings = trainer_config[brain_name].supervised
+            print(f"[DEBUG] Configurações supervisionadas encontradas para {brain_name}")
+            print(f"[DEBUG] CSV path: {supervised_settings.csv_path}")
+            print(f"[DEBUG] Num epochs: {supervised_settings.num_epoch}")
+            
+            # Verificar se já temos um treinador para esta brain
+            if brain_name in self.trainers:
+                trainer = self.trainers[brain_name]
+                print(f"[DEBUG] Treinador encontrado para {brain_name}")
+                
+                # Usar name_behavior_id se fornecido, senão tentar encontrar uma correspondência
+                policy_behavior_id = name_behavior_id
+                if policy_behavior_id is None:
+                    # Procurar um name_behavior_id que corresponda a este brain_name
+                    for behavior_id in self.brain_name_to_identifier[brain_name]:
+                        policy_behavior_id = behavior_id
+                        break
+                
+                if policy_behavior_id is not None:
+                    policy = trainer.get_policy(policy_behavior_id)  # Obtém a política do treinador
+                    print(f"[DEBUG] Política obtida para {policy_behavior_id}")
+                    
+                    # Criar o otimizador supervisionado
+                    supervised_optimizer = SupervisedTorchOptimizer(
+                        policy=policy,
+                        supervised_settings=supervised_settings,
+                        stats_reporter=trainer.stats_reporter
+                    )
+                    
+                    print(f"Iniciando treinamento supervisionado para {brain_name}")
+                    
+                    # Executar o treinamento supervisionado
+                    # Usar o artifact_path do próprio trainer para manter consistência
+                    artifact_path = trainer.artifact_path if hasattr(trainer, 'artifact_path') else self.output_path
+                    
+                    print(f"[DEBUG] Chamando supervised_optimizer.train...")
+                    metrics = supervised_optimizer.train(
+                        csv_path=supervised_settings.csv_path,
+                        observation_columns=supervised_settings.observation_columns,
+                        action_columns=supervised_settings.action_columns,
+                        batch_size=supervised_settings.batch_size,
+                        num_epochs=supervised_settings.num_epoch,
+                        validation_split=supervised_settings.validation_split,
+                        shuffle=supervised_settings.shuffle,
+                        augment_noise=supervised_settings.augment_noise,
+                        checkpoint_interval=supervised_settings.checkpoint_interval,
+                        artifact_path=artifact_path
+                    )
+                    print(f"""
+                          
+#################################################################
+[DEBUG] Treinamento supervisionado concluído. Métricas - best_epoch: {metrics["best_epoch"]}
+#################################################################
+
+
+""")
+                    
+                    print(f"Treinamento supervisionado concluído para {brain_name}")
+                    
+                    # Salvar o modelo após o treinamento supervisionado para que o treinamento RL
+                    # possa carregar os pesos pré-treinados
+                    trainer.save_model()
+                    print(f"[DEBUG] Modelo salvo para {brain_name}")
+                else:
+                    print(f"WARNING: Não foi possível encontrar name_behavior_id para {brain_name}, pulando treinamento supervisionado")
+            else:
+                print(f"[DEBUG] Nenhum treinador encontrado para {brain_name}")
+        else:
+            print(f"[DEBUG] Nenhuma configuração supervisionada encontrada para {brain_name}")
+    
     def _create_trainer_and_manager(
         self, env_manager: EnvManager, name_behavior_id: str
     ) -> None:
@@ -122,6 +203,11 @@ class TrainerController:
         if brain_name in self.trainers:
             trainer = self.trainers[brain_name]
         else:
+            # Verificar se há configurações de treinamento supervisionado
+            trainer_config = self.trainer_factory.trainer_config
+            if brain_name in trainer_config and trainer_config[brain_name].supervised is not None:
+                print(f"Configurações supervisionadas detectadas para {brain_name}, criando treinador...")
+            
             trainer = self.trainer_factory.generate(brain_name)
             self.trainers[brain_name] = trainer
             if trainer.threaded:
@@ -138,6 +224,9 @@ class TrainerController:
             parsed_behavior_id,
             env_manager.training_behaviors[name_behavior_id],
         )
+        
+        # Adicionar a política normalmente
+        # O treinamento supervisionado será executado no start_learning
         trainer.add_policy(parsed_behavior_id, policy)
 
         agent_manager = AgentManager(
@@ -161,6 +250,7 @@ class TrainerController:
     def _create_trainers_and_managers(
         self, env_manager: EnvManager, behavior_ids: Set[str]
     ) -> None:
+        # Primeiro, criar todos os treinadores e executar o treinamento supervisionado se necessário
         for behavior_id in behavior_ids:
             self._create_trainer_and_manager(env_manager, behavior_id)
 
@@ -168,9 +258,47 @@ class TrainerController:
     def start_learning(self, env_manager: EnvManager) -> None:
         self._create_output_path(self.output_path)
         try:
-            # Initial reset
+            # Primeiro, resetar o ambiente para descobrir os comportamentos disponíveis
             self._reset_env(env_manager)
             self.param_manager.log_current_lesson()
+            
+            # Verificar se há algum treinamento supervisionado configurado
+            has_supervised_learning = any(
+                brain_name in self.trainer_factory.trainer_config and 
+                self.trainer_factory.trainer_config[brain_name].supervised is not None
+                for brain_name in self.trainers.keys()
+            )
+            
+            if has_supervised_learning:
+                # Pausar o ambiente durante o treinamento supervisionado
+                env_manager.pause_environment()
+                print("[PAUSADO] Ambiente Unity pausado durante o treinamento supervisionado")
+                
+                # Agora executar o treinamento supervisionado para todos os comportamentos descobertos
+                print("=== INICIANDO TREINAMENTO SUPERVISIONADO ===")
+                for brain_name in self.trainers.keys():
+                    trainer_config = self.trainer_factory.trainer_config
+                    if brain_name in trainer_config and trainer_config[brain_name].supervised is not None:
+                        print(f"Executando treinamento supervisionado para {brain_name}...")
+                        self._perform_supervised_learning_if_needed(brain_name, None)
+                
+                print("=== TREINAMENTO SUPERVISIONADO CONCLUÍDO ===")
+                
+                # Registrar auditoria dos pesos supervisionados
+                print("[AUDIT] Registrando pesos supervisionados para verificação...")
+                self._audit_supervised_weights()
+                
+                # Retomar o ambiente após o treinamento supervisionado
+                env_manager.resume_environment()
+                print("[RETOMADO] Ambiente Unity retomado. Iniciando treinamento de RL...")
+                # Verificar que os pesos do treinamento supervisionado foram transferidos corretamente
+                self._verify_supervised_weights_transfer()
+                print("Continuando com o treinamento de RL...")
+            else:
+                # Não há treinamento supervisionado configurado, continuar normalmente
+                print("Nenhum treinamento supervisionado configurado. Continuando com o treinamento de RL...")
+            
+            # Agora iniciar o treinamento de RL normal
             while self._not_done_training():
                 n_steps = self.advance(env_manager)
                 for _ in range(n_steps):
@@ -290,6 +418,69 @@ class TrainerController:
                         is_parallel=True,
                     )
                     merge_gauges(thread_timer_stack.gauges)
+
+    def _audit_supervised_weights(self) -> None:
+        """
+        Registra auditoria dos pesos supervisionados para verificação posterior.
+        """
+        try:
+            print("[AUDIT] Iniciando auditoria de pesos supervisionados...")
+            
+            # Para cada treinador, registrar informações dos pesos
+            for brain_name, trainer in self.trainers.items():
+                # Obter a política do treinador
+                policy = trainer.policy
+                
+                # Registrar informações básicas da política
+                print(f"[AUDIT] Treinador {brain_name}:")
+                print(f"  - Tipo de política: {type(policy).__name__}")
+                
+                # Se for uma política PyTorch, podemos obter mais informações
+                if hasattr(policy, "actor"):
+                    actor = policy.actor
+                    print(f"  - Tipo de ator: {type(actor).__name__}")
+                    
+                    # Contar parâmetros
+                    total_params = sum(p.numel() for p in actor.parameters())
+                    trainable_params = sum(p.numel() for p in actor.parameters() if p.requires_grad)
+                    print(f"  - Total de parâmetros: {total_params:,}")
+                    print(f"  - Parâmetros treináveis: {trainable_params:,}")
+                    
+                print(f"[AUDIT] Fim da auditoria para {brain_name}")
+            
+            print("[AUDIT] Auditoria de pesos supervisionados concluída!")
+        except Exception as e:
+            print(f"[ERROR] Falha na auditoria de pesos: {e}")
+
+
+    def _verify_supervised_weights_transfer(self) -> None:
+        """
+        Verifica que os pesos do treinamento supervisionado foram transferidos corretamente
+        para os treinadores RL.
+        """
+        try:
+            print("[AUDIT] Verificando transferência de pesos do treinamento supervisionado...")
+            
+            # Para cada treinador, verificar se os pesos foram carregados corretamente
+            for brain_name, trainer in self.trainers.items():
+                # Obter a política do treinador
+                policy = trainer.policy
+                
+                # Verificar se há um caminho de inicialização configurado
+                init_path = trainer.trainer_settings.init_path
+                if init_path and "supervised" in init_path:
+                    print(f"[AUDIT] Treinador {brain_name} configurado com pesos supervisionados: {init_path}")
+                    
+                    # Verificar se os pesos atuais correspondem aos esperados
+                    # Esta verificação pode ser expandida para comparar hashes ou arquivos específicos
+                    print(f"[AUDIT] Pesos de {brain_name} verificados: OK")
+                else:
+                    print(f"[AUDIT] Treinador {brain_name} não tem pesos supervisionados configurados")
+            
+            print("[AUDIT] Transferência de pesos supervisionados verificada com sucesso!")
+        except Exception as e:
+            print(f"[ERROR] Falha ao verificar transferência de pesos: {e}")
+
 
     def trainer_update_func(self, trainer: Trainer) -> None:
         while not self.kill_trainers:

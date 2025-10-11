@@ -1,0 +1,74 @@
+# Exemplo de configuração YAML com seção de treinamento supervisionado
+default_settings: null
+behaviors:
+  ExampleBehavior:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 10240
+      learning_rate: 0.0003
+      learning_rate_schedule: linear
+    checkpoint_interval: 50000
+    network_settings:
+      normalize: true
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+      goal_conditioning_type: hyper
+      deterministic: false
+    # Seção de treinamento supervisionado - quando presente, executa primeiro
+    supervised:
+      csv_path: caminho/para/seu/arquivo.csv
+      observation_columns: ['obs1', 'obs2', 'obs3']
+      action_columns: ['action1', 'action2']
+      num_epoch: 10
+      batch_size: 1280
+      learning_rate: 0.0003
+      checkpoint_interval: 5000
+      validation_split: 0.2
+      shuffle: true
+      augment_noise: 0.01
+      early_stopping: true
+      patience: 5
+      min_delta: 0.001
+      init_path: null
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+        network_settings:
+          normalize: true
+          hidden_units: 128
+          num_layers: 2
+    keep_checkpoints: 5
+    max_steps: 500000
+    time_horizon: 64
+    summary_freq: 50000
+    threaded: false
+
+env_settings:
+  env_path: null
+  env_args: null
+  base_port: 5004
+  num_envs: 1
+  num_areas: 1
+  timeout_wait: 30
+  seed: -1
+  max_lifetime_restarts: 60
+  restarts_rate_limit_n: 1
+  restarts_rate_limit_period_s: 60
+
+checkpoint_settings:
+  run_id: example_supervised
+  initialize_from: null
+  load_model: false
+  resume: false
+  force: false
+  train_model: true
+  inference: false
+  results_dir: results
+
+torch_settings:
+  device: cpu
+
+debug: false

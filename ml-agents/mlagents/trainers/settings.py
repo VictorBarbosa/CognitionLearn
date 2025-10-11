@@ -142,6 +142,24 @@ class NetworkSettings:
 
 
 @attr.s(auto_attribs=True)
+class SupervisedLearningSettings:
+    csv_path: str
+    observation_columns: List[str]
+    action_columns: List[str]
+    num_epoch: int = 10
+    batch_size: int = 1280
+    learning_rate: float = 3e-4
+    checkpoint_interval: int = 5000
+    validation_split: float = 0.2
+    shuffle: bool = True
+    augment_noise: float = 0.01
+    early_stopping: bool = True
+    patience: int = 5
+    min_delta: float = 0.001
+    init_path: Optional[str] = None
+
+
+@attr.s(auto_attribs=True)
 class BehavioralCloningSettings:
     demo_path: str
     steps: int = 0
@@ -639,11 +657,15 @@ class TrainerSettings(ExportableSettings):
     threaded: bool = False
     self_play: Optional[SelfPlaySettings] = None
     behavioral_cloning: Optional[BehavioralCloningSettings] = None
+    supervised: Optional[SupervisedLearningSettings] = None
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],
         RewardSignalSettings.structure,
     )
+    
+    # Register hook for SupervisedLearningSettings
+    # No special structure function needed, will use default cattr structure
 
     @network_settings.validator
     def _check_batch_size_seq_length(self, attribute, value):
@@ -720,6 +742,9 @@ class TrainerSettings(ExportableSettings):
             elif key == "trainer_type":
                 if val not in all_trainer_types.keys():
                     raise TrainerConfigError(f"Invalid trainer type {val} was found")
+            elif key == "supervised":
+                if val is not None:  # Only process if supervised settings are provided
+                    d_copy[key] = strict_to_cls(val, SupervisedLearningSettings)
             else:
                 d_copy[key] = check_and_structure(key, val, t)
         return t(**d_copy)
@@ -888,6 +913,7 @@ class RunOptions(ExportableSettings):
     cattr.register_structure_hook(
         TrainerSettings.DefaultTrainerDict, TrainerSettings.dict_to_trainerdict
     )
+    cattr.register_structure_hook(SupervisedLearningSettings, strict_to_cls)
     cattr.register_unstructure_hook(collections.defaultdict, defaultdict_to_dict)
 
     @staticmethod
