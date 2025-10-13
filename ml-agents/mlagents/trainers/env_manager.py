@@ -100,23 +100,23 @@ class EnvManager(ABC):
 
     def pause_environment(self) -> None:
         """
-        Pausa o ambiente para evitar que ele continue processando steps.
-        Útil para períodos de treinamento intensivo como treinamento supervisionado.
+        Pauses the environment to prevent it from continuing to process steps.
+        Useful for periods of intensive training like supervised learning.
         """
         self._paused = True
         logger.info("Ambiente pausado.")
 
     def resume_environment(self) -> None:
         """
-        Retoma o processamento normal do ambiente após pausa.
+        Resumes normal environment processing after a pause.
         """
         self._paused = False
         logger.info("Ambiente retomado.")
 
     def is_environment_paused(self) -> bool:
         """
-        Verifica se o ambiente está atualmente pausado.
-        :return: True se o ambiente está pausado, False caso contrário
+        Checks if the environment is currently paused.
+        :return: True if the environment is paused, False otherwise
         """
         return self._paused
 
@@ -126,7 +126,7 @@ class EnvManager(ABC):
         Calling code should pass the returned EnvironmentSteps to process_steps() after calling this.
         :return: The list of EnvironmentSteps
         """
-        # Se o ambiente está pausado, não processar steps
+        # If the environment is paused, do not process steps
         if self._paused:
             return []
 

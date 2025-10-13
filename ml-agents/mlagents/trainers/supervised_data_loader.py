@@ -1,6 +1,7 @@
 """
-Módulo para carregar e processar dados de treinamento supervisionado a partir de um arquivo CSV.
+Data loader for supervised training in ML-Agents.
 """
+
 import csv
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
@@ -9,10 +10,19 @@ from mlagents_envs.base_env import ActionSpec
 from mlagents.trainers.torch_entities.utils import ModelUtils
 from mlagents.torch_utils import torch, default_device
 
+from mlagents.trainers.supervised_utils import (
+    load_csv_data,
+    prepare_observations,
+    prepare_actions,
+    split_data,
+    augment_data,
+    create_data_loader
+)
+
 
 class SupervisedDataLoader:
     """
-    Classe para carregar e processar dados de treinamento supervisionado a partir de um CSV.
+    Class to load and process supervised training data from a CSV.
     """
     
     def __init__(
@@ -26,13 +36,13 @@ class SupervisedDataLoader:
         action_spec: Optional[ActionSpec] = None
     ):
         """
-        :param csv_path: Caminho para o arquivo CSV
-        :param observation_columns: Lista de nomes das colunas que contêm observações
-        :param action_columns: Lista de nomes das colunas que contêm ações
-        :param validation_split: Fração dos dados a ser usada para validação
-        :param shuffle: Se os dados devem ser embaralhados
-        :param augment_noise: Nível de ruído para aumentação de dados
-        :param action_spec: Especificação das ações (opcional, para validação)
+        :param csv_path: Path to the CSV file
+        :param observation_columns: List of column names containing observations
+        :param action_columns: List of column names containing actions
+        :param validation_split: Fraction of data to be used for validation
+        :param shuffle: Whether the data should be shuffled
+        :param augment_noise: Noise level for data augmentation
+        :param action_spec: Action specification (optional, for validation)
         """
         self.csv_path = csv_path
         self.observation_columns = observation_columns
@@ -42,14 +52,14 @@ class SupervisedDataLoader:
         self.augment_noise = augment_noise
         self.action_spec = action_spec
         
-        # Carregar dados
+        # Load data
         self.data = self._load_data()
         
-        # Dividir dados em treino e validação
+        # Split data into training and validation
         self.train_data, self.val_data = self._split_data()
         
-        # Validar se o número de ações corresponde à especificação, se fornecida
-        # Essa validação pode ser opcional para manter compatibilidade com diferentes configurações
+        # Validate if the number of actions matches the specification, if provided
+        # This validation can be optional to maintain compatibility with different configurations
         if self.action_spec is not None:
             if self.action_spec.is_discrete:
                 expected_action_size = sum(self.action_spec.discrete_branches)
@@ -59,60 +69,63 @@ class SupervisedDataLoader:
             if expected_action_size != len(self.action_columns):
                 import warnings
                 # warnings.warn(
-                #     f"Número de colunas de ação ({len(self.action_columns)}) não corresponde "
-                #     f"à especificação de ações ({expected_action_size}). "
-                #     f"Continuando de qualquer forma, mas verifique se as colunas de ação estão corretas."
+                #     f"Number of action columns ({len(self.action_columns)}) does not match "
+                #     f"the action specification ({expected_action_size}). "
+                #     f"Continuing anyway, but please check if the action columns are correct."
                 # )
     
     def _load_data(self) -> pd.DataFrame:
         """
-        Carrega os dados do arquivo CSV.
+        Loads data from the CSV file.
         """
         try:
-            data = pd.read_csv(self.csv_path)
-            # Verificar se as colunas especificadas existem
+            data = load_csv_data(self.csv_path)
+            # Check if the specified columns exist
             required_columns = set(self.observation_columns + self.action_columns)
             available_columns = set(data.columns)
             
             missing_cols = required_columns - available_columns
             if missing_cols:
-                raise ValueError(f"Colunas ausentes no CSV: {missing_cols}")
+                raise ValueError(f"Missing columns in CSV: {missing_cols}")
                 
             return data
         except FileNotFoundError:
-            raise FileNotFoundError(f"Arquivo CSV não encontrado: {self.csv_path}")
+            raise FileNotFoundError(f"CSV file not found: {self.csv_path}")
         except Exception as e:
-            raise ValueError(f"Erro ao carregar CSV: {str(e)}")
+            raise ValueError(f"Error loading CSV: {str(e)}")
     
     def _split_data(self) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray]]:
         """
-        Divide os dados em conjuntos de treinamento e validação.
+        Splits the data into training and validation sets.
         """
-        if self.shuffle:
-            self.data = self.data.sample(frac=1, random_state=42).reset_index(drop=True)
+        observations = prepare_observations(self.data, self.observation_columns)
+        actions = prepare_actions(self.data, self.action_columns)
         
-        n_samples = len(self.data)
-        n_val = int(n_samples * self.validation_split)
+        train_obs, train_actions, val_obs, val_actions = split_data(
+            observations, actions, self.validation_split, self.shuffle
+        )
         
-        val_indices = self.data.index[:n_val].tolist()
-        train_indices = self.data.index[n_val:].tolist()
+        # Apply data augmentation only to the training set
+        if self.augment_noise > 0:
+            train_obs, train_actions = augment_data(
+                train_obs, train_actions, self.augment_noise
+            )
         
-        # Separar observações e ações
         train_data = {
-            'observations': self.data.loc[train_indices, self.observation_columns].values.astype(np.float32),
-            'actions': self.data.loc[train_indices, self.action_columns].values.astype(np.float32)
+            'observations': train_obs,
+            'actions': train_actions
         }
         
         val_data = {
-            'observations': self.data.loc[val_indices, self.observation_columns].values.astype(np.float32),
-            'actions': self.data.loc[val_indices, self.action_columns].values.astype(np.float32)
+            'observations': val_obs,
+            'actions': val_actions
         }
         
         return train_data, val_data
     
     def add_noise_to_observations(self, observations: np.ndarray, noise_level: float) -> np.ndarray:
         """
-        Adiciona ruído às observações para aumentação de dados.
+        Adds noise to observations for data augmentation.
         """
         if noise_level > 0:
             noise = np.random.normal(0, noise_level, observations.shape).astype(observations.dtype)
@@ -121,21 +134,21 @@ class SupervisedDataLoader:
     
     def get_train_loader(self, batch_size: int) -> torch.utils.data.DataLoader:
         """
-        Retorna um DataLoader PyTorch para os dados de treinamento.
+        Returns a PyTorch DataLoader for the training data.
         """
         return self._create_loader(self.train_data, batch_size)
     
     def get_validation_loader(self, batch_size: int) -> torch.utils.data.DataLoader:
         """
-        Retorna um DataLoader PyTorch para os dados de validação.
+        Returns a PyTorch DataLoader for the validation data.
         """
         return self._create_loader(self.val_data, batch_size, shuffle=False)
     
     def _create_loader(self, data: Dict[str, np.ndarray], batch_size: int, shuffle: bool = True) -> torch.utils.data.DataLoader:
         """
-        Cria um DataLoader PyTorch com os dados especificados.
+        Creates a PyTorch DataLoader with the specified data.
         """
-        # Adicionar ruído de aumento de dados apenas ao treinamento
+        # Add data augmentation noise only to the training set
         observations = data['observations']
         if self.augment_noise > 0 and data is self.train_data:
             observations = self.add_noise_to_observations(observations, self.augment_noise)
@@ -144,8 +157,8 @@ class SupervisedDataLoader:
         actions_tensor = torch.tensor(data['actions'])
         
         dataset = torch.utils.data.TensorDataset(observations_tensor, actions_tensor)
-        # Criar um gerador compatível com o dispositivo definido para o modelo
-        generator = torch.Generator(device=default_device())
+        # Create a generator compatible with the device defined for the model
+        generator = torch.Generator(device=default_device().type)
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=batch_size,
@@ -155,12 +168,12 @@ class SupervisedDataLoader:
     
     def get_num_features(self) -> int:
         """
-        Retorna o número de features nas observações.
+        Returns the number of features in the observations.
         """
         return len(self.observation_columns)
     
     def get_num_actions(self) -> int:
         """
-        Retorna o número de ações.
+        Returns the number of actions.
         """
         return len(self.action_columns)

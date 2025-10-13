@@ -1,6 +1,6 @@
 """
-Modelo sequencial para treinamento supervisionado no ML-Agents.
-Este modelo usa nn.Sequential para criar uma rede compatível com o sistema de exportação ONNX existente.
+Sequential model for supervised training in ML-Agents.
+This model uses nn.Sequential to create a network compatible with the existing ONNX export system.
 """
 import torch
 import torch.nn as nn
@@ -14,7 +14,7 @@ from mlagents.trainers.settings import NetworkSettings
 
 class SequentialActor(nn.Module):
     """
-    Modelo de ator sequencial que é compatível com o sistema de exportação ONNX do ML-Agents.
+    Sequential actor model that is compatible with the ML-Agents ONNX export system.
     """
     def __init__(
         self,
@@ -32,55 +32,55 @@ class SequentialActor(nn.Module):
         self.name_behavior = name_behavior
         self.dropout_rate = dropout_rate
         
-        # Calcular o tamanho total das observações
+        # Calculate the total size of observations
         total_obs_size = 0
         for obs_spec in observation_specs:
             total_obs_size += int(torch.prod(torch.tensor(obs_spec.shape)))
         
-        # Criar encoder sequencial para as observações
-        # Primeiro, um encoder para processar as observações vetoriais
+        # Create a sequential encoder for the observations
+        # First, an encoder to process the vector observations
         self.vector_encoder = VectorInput(
             total_obs_size, 
             normalize=network_settings.normalize
         )
         
-        # Criar a sequência de camadas para o corpo da rede
+        # Create the sequence of layers for the network body
         hidden_layers = []
         current_size = total_obs_size
         
-        # Adicionar camadas ocultas sequenciais com dropout para regularização
+        # Add sequential hidden layers with dropout for regularization
         for _ in range(network_settings.num_layers):
             hidden_layers.append(nn.Linear(current_size, network_settings.hidden_units))
             hidden_layers.append(nn.ReLU())
-            # Adicionando dropout após cada camada ReLU para regularização
+            # Adding dropout after each ReLU layer for regularization
             if dropout_rate > 0:
                 hidden_layers.append(nn.Dropout(dropout_rate))
             current_size = network_settings.hidden_units
         
         self.hidden_layers = nn.Sequential(*hidden_layers)
         
-        # Criar modelo de ação (que lida com ações contínuas e discretas)
+        # Create action model (which handles continuous and discrete actions)
         self.action_model = ActionModel(
             current_size,
             action_spec,
             network_settings
         )
         
-        # Memória (para redes recorrentes, se necessário)
+        # Memory (for recurrent networks, if necessary)
         self.memory_size = network_settings.memory_size if network_settings.use_recurrent else 0
         
-        # Valor heads (para estimativas de valor, se necessário)
+        # Value heads (for value estimates, if necessary)
         self.value_heads = ValueHeads(
             [name_behavior], 
             current_size
         )
         
-        # Inicializar pesos para melhorar a regularização
+        # Initialize weights to improve regularization
         self._init_weights()
     
     def _init_weights(self):
         """
-        Inicializa os pesos com regularização para melhorar a generalização.
+        Initializes weights with regularization to improve generalization.
         """
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -89,44 +89,44 @@ class SequentialActor(nn.Module):
     
     def forward(self, obs, masks=None, memories=None):
         """
-        Forward pass padrão para o modelo sequencial.
+        Standard forward pass for the sequential model.
         """
-        # Achatando e concatenando observações
+        # Flattening and concatenating observations
         if len(obs) == 1:
-            # Caso tenhamos apenas uma observação, usamos diretamente
+            # Case where we have only one observation, use it directly
             flat_obs = obs[0].view(obs[0].size(0), -1)
         else:
-            # Concatenar múltiplas observações
+            # Concatenate multiple observations
             concatenated_obs = [ob.view(ob.size(0), -1) for ob in obs]
             flat_obs = torch.cat(concatenated_obs, dim=1)
         
-        # Processar observações
+        # Process observations
         encoded_obs = self.vector_encoder(flat_obs)
         
-        # Passar pelas camadas ocultas sequenciais
+        # Pass through sequential hidden layers
         hidden_out = self.hidden_layers(encoded_obs)
         
-        # Obter ações
+        # Get actions
         action, log_probs = self.action_model(hidden_out)
         
-        # Obter estimativas de valor
+        # Get value estimates
         values = self.value_heads(hidden_out)
         
         return action, values, log_probs
     
     def get_action_and_stats(self, obs, masks=None, memories=None):
         """
-        Método compatível com o sistema existente do ML-Agents.
+        Method compatible with the existing ML-Agents system.
         """
         action, values, log_probs = self.forward(obs, masks, memories)
         
-        # Preparar saída compatível com o sistema existente
+        # Prepare output compatible with the existing system
         run_out = {
             "value_output": values[self.name_behavior],
             "log_probs": log_probs
         }
         
-        # Para compatibilidade com o sistema de exportação ONNX
+        # For compatibility with the ONNX export system
         if memories is None:
             memories = torch.zeros((len(obs[0]), self.memory_size)) if self.memory_size > 0 else torch.tensor([])
         
@@ -134,7 +134,7 @@ class SequentialActor(nn.Module):
     
     def get_stats(self, obs):
         """
-        Método compatível com o sistema existente do ML-Agents.
+        Method compatible with the existing ML-Agents system.
         """
         action, values, log_probs = self.forward(obs)
         
