@@ -1,0 +1,106 @@
+# Configuração completa para treinamento supervisionado standalone
+
+# Configurações dos dados de treinamento
+data:
+  # Caminho para o arquivo CSV com dados de treinamento
+  csv_path: "./data/training_data.csv"
+  
+  # Colunas de observação no CSV (deixe vazio para usar todas exceto as colunas de ação)
+  observation_columns: []
+  
+  # Colunas de ação no CSV (obrigatório)
+  action_columns: []
+  
+  # Fração dos dados a ser usada para validação
+  validation_split: 0.2
+  
+  # Se os dados devem ser embaralhados
+  shuffle: true
+  
+  # Nível de ruído para aumentação de dados
+  augment_noise: 0.01
+
+# Configurações do modelo
+model:
+  # Algoritmo a ser usado (ppo, sac, tdsac)
+  algorithm: "ppo"
+  
+  # Configurações da rede neural
+  network_settings:
+    # Número de unidades ocultas em cada camada
+    hidden_units: 256
+    
+    # Número de camadas ocultas
+    num_layers: 2
+    
+    # Se as observações devem ser normalizadas
+    normalize: true
+    
+    # Tamanho da memória para redes recorrentes (0 para desativado)
+    memory_size: 0
+    
+    # Se deve usar redes recorrentes
+    use_recurrent: false
+
+# Configurações de treinamento
+training:
+  # Número de épocas de treinamento
+  epochs: 100
+  
+  # Tamanho do batch
+  batch_size: 128
+  
+  # Taxa de aprendizado
+  learning_rate: 3e-4
+  
+  # Fração dos dados a ser usada para validação
+  validation_split: 0.2
+  
+  # Se os dados devem ser embaralhados
+  shuffle: true
+  
+  # Nível de ruído para aumentação de dados
+  augment_noise: 0.01
+  
+  # Se deve usar early stopping
+  early_stopping: true
+  
+  # Número de épocas sem melhoria antes de parar
+  patience: 10
+  
+  # Melhoria mínima para considerar como melhoria
+  min_delta: 0.001
+  
+  # Taxa de dropout para regularização
+  dropout_rate: 0.1
+  
+  # Weight decay para regularização L2
+  weight_decay: 1e-4
+  
+  # Paciência para redução da taxa de aprendizado
+  lr_patience: 5
+
+# Configurações de saída
+output:
+  # Diretório para salvar os resultados
+  dir: "./results"
+  
+  # Intervalo de épocas para salvar checkpoints
+  checkpoint_interval: 1000
+  
+  # Se deve exportar para ONNX
+  export_onnx: true
+  
+  # Se deve exportar para .pt
+  export_pt: true
+
+# Configurações adicionais
+additional_settings:
+  # Dispositivo a ser usado (cuda ou cpu)
+  device: "cuda"
+  
+  # Semente para reprodução
+  seed: 42
+  
+  # Se deve mostrar informações detalhadas
+  verbose: true

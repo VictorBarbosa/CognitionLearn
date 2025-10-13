@@ -12,7 +12,9 @@ from mlagents.trainers.ppo_et.trainer import PPOETTrainer
 from mlagents.trainers.ppo_ce.settings import PPOCESettings
 from mlagents.trainers.ppo_ce.trainer import PPOCETrainer
 from mlagents.trainers.sac.optimizer_torch import SACSettings
+from mlagents.trainers.tdsac.optimizer_torch import TDSACSettings
 from mlagents.trainers.sac.trainer import SACTrainer
+from mlagents.trainers.tdsac.trainer import TDSACTrainer
 from mlagents.trainers.sac_ae.settings import SACAESettings
 from mlagents.trainers.sac_ae.trainer import SACAETrainer
 from mlagents.trainers.td3.optimizer_torch import TD3Settings
@@ -49,6 +51,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             SACTrainer.get_trainer_name(): SACTrainer,
             SACAETrainer.get_trainer_name(): SACAETrainer,
             POCATrainer.get_trainer_name(): POCATrainer,
+            TDSACTrainer.get_trainer_name(): TDSACTrainer,
             TD3Trainer.get_trainer_name(): TD3Trainer,
             TDSACTrainer.get_trainer_name(): TDSACTrainer,
             TQCTrainer.get_trainer_name(): TQCTrainer,
@@ -68,6 +71,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             SACTrainer.get_trainer_name(): SACSettings,
             SACAETrainer.get_trainer_name(): SACAESettings,
             POCATrainer.get_trainer_name(): POCASettings,
+            TDSACTrainer.get_trainer_name(): TDSACSettings,
             TD3Trainer.get_trainer_name(): TD3Settings,
             TDSACTrainer.get_trainer_name(): TDSACSettings,
             TQCTrainer.get_trainer_name(): TQCSettings,
