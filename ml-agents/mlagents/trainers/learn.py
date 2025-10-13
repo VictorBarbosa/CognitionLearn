@@ -289,6 +289,16 @@ def run_cli(options: RunOptions) -> None:
 
 
 def main():
+    # Check for --generate-yaml flag before parsing other args
+    import sys
+    if "-gy" in sys.argv or "--generate-yaml" in sys.argv:
+        try:
+            from mlagents.trainers.create_rl_config import create_interactive_rl_yaml
+            create_interactive_rl_yaml()
+        except ImportError as e:
+            print(f"Could not find the configuration generator. Error: {e}. Make sure you are running from the root of the repository.")
+        sys.exit(0)
+
     run_cli(parse_command_line())
 
 

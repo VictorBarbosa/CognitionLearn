@@ -30,8 +30,6 @@ from mlagents.trainers.dcac.trainer import DCACTrainer
 from mlagents.trainers.crossq.optimizer_torch import CrossQSettings
 from mlagents.trainers.crossq.trainer import CrossQTrainer
 from mlagents.trainers.all.trainer import AllTrainer
-from mlagents.trainers.dreamerv3.optimizer_torch import DreamerV3Settings
-from mlagents.trainers.dreamerv3.trainer import DreamerV3Trainer
 from mlagents.trainers.settings import TrainerSettings, HyperparamSettings
 from mlagents_envs import logging_util
 
@@ -59,7 +57,7 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             DCACTrainer.get_trainer_name(): DCACTrainer,
             CrossQTrainer.get_trainer_name(): CrossQTrainer,
             AllTrainer.get_trainer_name(): AllTrainer,
-            DreamerV3Trainer.get_trainer_name(): DreamerV3Trainer,
+
         }
     )
     # global all_trainer_settings
@@ -78,7 +76,6 @@ def get_default_trainer_types() -> Tuple[Dict[str, Any], Dict[str, Any]]:
             DrQv2Trainer.get_trainer_name(): DrQv2Settings,
             DCACTrainer.get_trainer_name(): DCACSettings,
             CrossQTrainer.get_trainer_name(): CrossQSettings,
-            DreamerV3Trainer.get_trainer_name(): DreamerV3Settings,
             AllTrainer.get_trainer_name(): HyperparamSettings, # Using HyperparamSettings as a placeholder for AllSettings
         }
     )

@@ -327,49 +327,9 @@ behaviors: # Define o comportamento dos agentes no ambiente.
           strength: 1.0
           gamma: 0.99
 
-    dreamerv3:
-      trainer_type: dreamerv3
-      hyperparameters:
-        horizon: 15
-        imagination_horizon: 15
-        kl_scale: 1.0
-        kl_balance: 0.8
-        kl_free: 1.0
-        kl_forward: 0.1
-        kl_backward: 0.1
-        discount: 0.99
-        lambda_: 0.95
-        adam_epsilon: 1e-5
-        grad_clip: 100.0
-        latent_size: 32
-        deter_size: 256
-        stoch_size: 32
-        hidden_size: 256
-        embed_size: 256
-        reward_layers: 2
-        discount_layers: 2
-        actor_layers: 2
-        critic_layers: 2
-        cnn_depth: 32
-        dense_layers: 2
-        ensemble: 5
-        pretrain: 100
-        train_world_model: true
-        train_actor: true
-        train_critic: true
-        learning_rate: 3.0e-4
-        batch_size: 50
-        buffer_size: 1000000
-        buffer_init_steps: 1000
-        tau: 0.005
-      reward_signals:
-        extrinsic:
-          strength: 1.0
-          gamma: 0.99
-
    
 env_settings: # Configurações do ambiente.
-  worker_trainer_types: [tdsac,dcac,td3,crossq,tqc,sac,ppo,ppo_et,ppo_ce,sac_ae,dreamerv3] # Tipos de treinadores a serem usados pelos workers.
+  worker_trainer_types: [tdsac,dcac,td3,crossq,tqc,sac,ppo,ppo_et,ppo_ce,sac_ae] # Tipos de treinadores a serem usados pelos workers.
   env_path: /media/Store/git/UnityStarshipLaunchigLanding/Linux/App # Caminho para o executável do ambiente.
   env_args: null # Argumentos de linha de comando para o ambiente.
   base_port: 5005 # Porta base para comunicação com o ambiente.
