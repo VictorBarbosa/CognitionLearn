@@ -155,53 +155,130 @@ def get_sac_params(defaults):
 
 def get_tdsac_params(defaults):
     print("\n--- Configuring TDSAC ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    params['init_entcoef'] = get_input("init_entcoef", 0.1, float)  # TDSAC tem init_entcoef
     return OrderedDict([('trainer_type', 'tdsac'), ('hyperparameters', params)])
 
 def get_td3_params(defaults):
     print("\n--- Configuring TD3 ---")
-    params = get_sac_params(defaults)['hyperparameters']
-    params.pop('init_entcoef', None)
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    # TD3 não tem init_entcoef
     params['policy_delay'] = get_input("policy_delay", 2, int)
     return OrderedDict([('trainer_type', 'td3'), ('hyperparameters', params)])
 
 def get_tqc_params(defaults):
     print("\n--- Configuring TQC ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    params['init_entcoef'] = get_input("init_entcoef", 0.1, float)  # TQC tem init_entcoef
     params['n_quantiles'] = get_input("n_quantiles", 25, int)
     params['n_to_drop'] = get_input("n_to_drop", 2, int)
     return OrderedDict([('trainer_type', 'tqc'), ('hyperparameters', params)])
 
 def get_dcac_params(defaults):
     print("\n--- Configuring DCAC ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    params['init_entcoef'] = get_input("init_entcoef", 0.1, float)  # DCAC tem init_entcoef
     params['destructive_threshold'] = get_input("destructive_threshold", 0.0, float)
     return OrderedDict([('trainer_type', 'dcac'), ('hyperparameters', params)])
 
 def get_crossq_params(defaults):
     print("\n--- Configuring CrossQ ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    # CrossQ não tem init_entcoef
     return OrderedDict([('trainer_type', 'crossq'), ('hyperparameters', params)])
 
 def get_drqv2_params(defaults):
     print("\n--- Configuring DrQv2 ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    params['init_entcoef'] = get_input("init_entcoef", 0.1, float)  # DrQv2 tem init_entcoef
     params['image_pad'] = get_input("image_pad", 4, int)
     return OrderedDict([('trainer_type', 'drqv2'), ('hyperparameters', params)])
 
 def get_ppo_et_params(defaults):
     print("\n--- Configuring PPO-ET ---")
-    params = get_ppo_params(defaults)['hyperparameters']
-    params.pop('beta', None)
-    params.pop('epsilon', None)
+    params = OrderedDict()
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 128), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 10240), int)
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['beta'] = get_input("beta", 0.01, float)
+    params['epsilon'] = get_input("epsilon", 0.2, float)
+    params['lambd'] = get_input("lambd", 0.95, float)
+    params['num_epoch'] = get_input("num_epoch", 3, int)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
     params['entropy_temperature'] = get_input("entropy_temperature", 1.0, float)
     params['adaptive_entropy_temperature'] = get_bool("adaptive_entropy_temperature", True)
-    params['target_entropy'] = get_input("target_entropy (or 'None')", 'None', str)
+    
+    # Tratar target_entropy com mais cuidado - só adicionar se for um valor numérico válido
+    target_entropy_input = get_input("target_entropy (or 'null')", 'null', float)
+    if target_entropy_input.lower() != 'none' and target_entropy_input.strip() != '':
+        try:
+            target_entropy_value = float(target_entropy_input)
+            params['target_entropy'] = target_entropy_value
+        except ValueError:
+            print(f"Warning: Invalid target_entropy value '{target_entropy_input}', skipping this parameter.")
+    # Se for 'None' ou vazio, simplesmente não adicionamos o parâmetro ao dicionário
+    
     return OrderedDict([('trainer_type', 'ppo_et'), ('hyperparameters', params)])
 
 def get_ppo_ce_params(defaults):
     print("\n--- Configuring PPO-CE ---")
-    params = get_ppo_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 128), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 10240), int)
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['beta'] = get_input("beta", 0.01, float)
+    params['epsilon'] = get_input("epsilon", 0.2, float)
+    params['lambd'] = get_input("lambd", 0.95, float)
+    params['num_epoch'] = get_input("num_epoch", 3, int)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
     params['curiosity_strength'] = get_input("curiosity_strength", 0.01, float)
     params['curiosity_gamma'] = get_input("curiosity_gamma", 0.99, float)
     params['curiosity_learning_rate'] = get_input("curiosity_learning_rate", 0.0001, float)
@@ -213,7 +290,16 @@ def get_ppo_ce_params(defaults):
 
 def get_sac_ae_params(defaults):
     print("\n--- Configuring SAC-AE ---")
-    params = get_sac_params(defaults)['hyperparameters']
+    params = OrderedDict()
+    params['learning_rate'] = get_input("learning_rate", defaults.get('learning_rate', 0.0003), float)
+    params['learning_rate_schedule'] = get_choice("learning_rate_schedule", ["linear", "constant"], 0)
+    params['batch_size'] = get_input("batch_size", defaults.get('batch_size', 64), int)
+    params['buffer_size'] = get_input("buffer_size", defaults.get('buffer_size', 50000), int)
+    params['buffer_init_steps'] = get_input("buffer_init_steps", 10000, int)
+    params['tau'] = get_input("tau", 0.005, float)
+    params['steps_per_update'] = get_input("steps_per_update", 1.0, float)
+    params['save_replay_buffer'] = get_bool("save_replay_buffer", True)
+    params['init_entcoef'] = get_input("init_entcoef", 0.1, float)  # SAC-AE tem init_entcoef
     params['latent_size'] = get_input("latent_size", 512, int)
     params['ae_learning_rate'] = get_input("ae_learning_rate", 1e-3, float)
     params['ae_hidden_units'] = get_input("ae_hidden_units", 256, int)

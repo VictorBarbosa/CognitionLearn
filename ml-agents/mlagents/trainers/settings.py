@@ -41,6 +41,24 @@ def check_and_structure(key: str, value: Any, class_type: type) -> Any:
         raise TrainerConfigError(
             f"The option {key} was specified in your YAML file for {class_type.__name__}, but is invalid."
         )
+    # Verificar se o valor é None e se o tipo permite None
+    if value is None:
+        field_type = attr_fields_dict[key].type
+        # Se o tipo do campo permite None (Union com None), retornar None
+        if hasattr(field_type, '__origin__') and field_type.__origin__ is Union:
+            if type(None) in field_type.__args__:
+                return None
+        # Se o valor é None mas o campo não permite None, lançar um erro mais claro
+        # ou usar um valor padrão se possível
+        # Neste caso, vamos verificar se há um valor padrão
+        if hasattr(attr_fields_dict[key], 'default') and attr_fields_dict[key].default is not attr.NOTHING:
+            return attr_fields_dict[key].default
+        # Caso contrário, lançar um erro mais claro
+        raise TrainerConfigError(
+            f"The option {key} was specified as None in your YAML file for {class_type.__name__}, "
+            f"but the field requires a value of type {field_type}. "
+            f"Please provide a valid value or remove this option to use the default."
+        )
     # Apply cattr structure to the values
     return cattr.structure(value, attr_fields_dict[key].type)
 
@@ -177,11 +195,13 @@ class HyperparamSettings:
     buffer_size: int = 10240
     learning_rate: float = 3.0e-4
     learning_rate_schedule: ScheduleType = ScheduleType.CONSTANT
+    checkpoint_interval: int = 5000
 
 
 @attr.s(auto_attribs=True)
 class OnPolicyHyperparamSettings(HyperparamSettings):
     num_epoch: int = 3
+    checkpoint_interval: int = 5000
 
 
 @attr.s(auto_attribs=True)
@@ -192,6 +212,7 @@ class OffPolicyHyperparamSettings(HyperparamSettings):
     steps_per_update: float = 1
     save_replay_buffer: bool = False
     reward_signal_steps_per_update: float = 4
+    checkpoint_interval: int = 5000
 
 
 # INTRINSIC REWARD SIGNALS #############################################################
@@ -670,6 +691,9 @@ class TrainerSettings(ExportableSettings):
     ppo_et: Optional[Dict] = attr.ib(default=None)
     ppo_ce: Optional[Dict] = attr.ib(default=None)
     sac_ae: Optional[Dict] = attr.ib(default=None)
+    
+    # Supervised learning settings
+    supervised: Optional['SupervisedLearningSettings'] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],

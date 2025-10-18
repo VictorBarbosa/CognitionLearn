@@ -197,7 +197,14 @@ def create_interactive_yaml():
     data_shuffle = get_bool_input("Shuffle data?", default=True)
     
     print("\n--- Model Settings ---")
-    algorithms = get_multiple_choices_input("Target algorithm(s) for compatibility", ["ppo", "sac", "tdsac"])
+    all_algorithms = ["ppo", "sac", "tdsac", "td3", "tqc", "dcac", "crossq", "drqv2", "ppo_et", "ppo_ce", "sac_ae"]
+    
+    # Check if user wants to select all algorithms
+    if get_bool_input("Use all available algorithms?", default=False):
+        algorithms = all_algorithms
+        print(f"Selected all algorithms: {algorithms}")
+    else:
+        algorithms = get_multiple_choices_input("Target algorithm(s) for compatibility", all_algorithms)
     hidden_units = int(get_input("Hidden units per layer", 256))
     num_layers = int(get_input("Number of hidden layers", 2))
     normalize = get_bool_input("Normalize observations?", default=True)

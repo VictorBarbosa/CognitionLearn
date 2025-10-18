@@ -1,0 +1,97 @@
+# Example configuration file for CSV to .demo conversion
+# This file demonstrates how to use the --demo option with mlagents-supervised
+
+data:
+  # Path to the CSV file with training data
+  csv_path: "./data/training_data.csv"
+  
+  # Observation columns in the CSV (leave empty to use all except action columns)
+  observation_columns: []
+  
+  # Action columns in the CSV (required)
+  action_columns: []
+
+model:
+  # Algorithm(s) to be used for architecture compatibility (ppo, sac, tdsac)
+  # Can be a list, e.g.: [ppo, sac]
+  algorithm: ppo
+  
+  # Neural network settings
+  network_settings:
+    # Number of hidden units in each layer
+    hidden_units: 128
+    
+    # Number of hidden layers
+    num_layers: 2
+    
+    # Whether observations should be normalized
+    normalize: False
+    
+    # Memory size for recurrent networks (0 for disabled)
+    memory_size: 0
+    
+    # Whether to use recurrent networks
+    use_recurrent: False
+
+# Training settings
+training:
+  # Number of training epochs
+  epochs: 100
+  
+  # Batch size
+  batch_size: 128
+  
+  # Learning rate
+  learning_rate: 0.0003
+  
+  # Fraction of the data to be used for validation
+  validation_split: 0.2
+  
+  # Whether the data should be shuffled
+  shuffle: True
+  
+  # Noise level for data augmentation
+  augment_noise: 0.01
+  
+  # Whether to use early stopping
+  early_stopping: True
+  
+  # Number of epochs without improvement before stopping
+  patience: 10
+  
+  # Minimum change to be considered an improvement
+  min_delta: 0.001
+  
+  # Dropout rate for regularization
+  dropout_rate: 0.1
+  
+  # Weight decay for L2 regularization
+  weight_decay: 1e-4
+  
+  # Patience for learning rate reduction
+  lr_patience: 5
+
+# Output settings
+output:
+  # Directory to save the results
+  dir: "./results"
+  
+  # Epoch interval to save checkpoints
+  checkpoint_interval: 1000
+  
+  # Whether to export to ONNX
+  export_onnx: True
+  
+  # Whether to export to .pt
+  export_pt: True
+
+# Additional settings
+additional_settings:
+  # Device to be used (cuda or cpu)
+  device: "cpu"
+  
+  # Seed for reproducibility
+  seed: 42
+  
+  # Whether to show detailed information
+  verbose: True

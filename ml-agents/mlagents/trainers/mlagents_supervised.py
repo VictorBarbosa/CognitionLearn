@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-
-"""
-Standalone CLI for ML-Agents supervised training.
-"""
-
 import argparse
 import sys
 import os
@@ -24,6 +18,234 @@ from mlagents.trainers.supervised_settings import SupervisedLearningSettings
 from mlagents.trainers.ppo.optimizer_torch import PPOSettings
 from mlagents.trainers.sac.optimizer_torch import SACSettings
 from mlagents.trainers.tdsac.optimizer_torch import TDSACSettings
+from mlagents.trainers.td3.optimizer_torch import TD3Settings
+from mlagents.trainers.tqc.optimizer_torch import TQCSettings
+from mlagents.trainers.dcac.optimizer_torch import DCACSettings
+from mlagents.trainers.crossq.optimizer_torch import CrossQSettings
+from mlagents.trainers.drqv2.optimizer_torch import DrQv2Settings
+from mlagents.trainers.ppo_et.settings import PPOETSettings
+from mlagents.trainers.ppo_ce.settings import PPOCESettings
+from mlagents.trainers.sac_ae.settings import SACAESettings
+from mlagents_envs.base_env import ActionSpec, ObservationSpec, DimensionProperty
+
+def convert_csv_to_demo(args):
+    """
+    Converts CSV file to .demo format.
+    
+    :param args: Parsed command line arguments
+    """
+    if not args.demo:
+        print("Error: --demo argument requires a CSV file path.")
+        return 1
+    
+    # Check if CSV file exists
+    if not os.path.exists(args.demo):
+        print(f"Error: CSV file not found: {args.demo}")
+        return 1
+    
+    # Get other required arguments for conversion
+    if not args.config:
+        print("Error: --config argument is required for CSV to .demo conversion.")
+        return 1
+    
+    try:
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+    except Exception as e:
+        print(f"Error loading configuration: {e}")
+        return 1
+    
+    data_conf = config.get('data', {})
+    model_conf = config.get('model', {})
+    
+    csv_path = args.demo
+    observation_columns = data_conf.get('observation_columns', [])
+    action_columns = data_conf.get('action_columns', [])
+    
+    if not observation_columns or not action_columns:
+        print("Error: Both observation_columns and action_columns must be specified in the config file.")
+        return 1
+    
+    # Determine output path for .demo file
+    demo_path = args.output or os.path.splitext(csv_path)[0] + ".demo"
+    
+    # Determine action specification from model config
+    algorithm = model_conf.get('algorithm', 'ppo')
+    action_spec = get_action_spec_from_algorithm(algorithm, config)
+    
+    try:
+        # Import the conversion module
+        from mlagents.trainers.csv_to_demo_converter import convert_csv_to_demo
+        
+        # Perform the conversion
+        convert_csv_to_demo(
+            csv_path=csv_path,
+            demo_path=demo_path,
+            observation_columns=observation_columns,
+            action_columns=action_columns,
+            action_spec=action_spec,
+            brain_name="SupervisedBrain",
+            demonstration_name=os.path.basename(csv_path)
+        )
+        
+        print(f"Successfully converted {csv_path} to {demo_path}")
+        return 0
+    except Exception as e:
+        print(f"Error during CSV to .demo conversion: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+def get_action_spec_from_algorithm(algorithm: str, config: Dict[str, Any]) -> ActionSpec:
+    """
+    Creates an ActionSpec based on the algorithm and configuration.
+    
+    :param algorithm: Algorithm name
+    :param config: Configuration dictionary
+    :return: ActionSpec object
+    """
+    data_conf = config.get('data', {})
+    model_conf = config.get('model', {})
+    action_columns = data_conf.get('action_columns', [])
+    
+    # Default to continuous actions
+    continuous_size = len(action_columns)
+    discrete_branches = []
+    
+    # Special cases for algorithms that might use discrete actions
+    # This would be determined by the actual environment specification
+    # For now, we'll use heuristics based on algorithm names and configuration
+    
+    # Algorithms typically using discrete actions
+    discrete_algorithms = ['ppo_ce']  # Curiosity-based algorithms sometimes use discrete actions
+    
+    if algorithm in discrete_algorithms:
+        # Try to determine discrete branches from configuration or data
+        # For simplicity, we'll assume a single discrete branch with the same number of actions
+        continuous_size = 0
+        discrete_branches = [max(2, len(action_columns))]  # Assume at least 2 actions per branch
+    
+    # Override with explicit configuration if provided
+    action_spec_conf = model_conf.get('action_spec', {})
+    if action_spec_conf:
+        continuous_size = action_spec_conf.get('continuous_size', continuous_size)
+        discrete_branches = action_spec_conf.get('discrete_branches', discrete_branches)
+    
+    return ActionSpec(
+        continuous_size=continuous_size,
+        discrete_branches=tuple(discrete_branches)
+    )
+
+
+def get_action_spec_from_algorithm(algorithm: str, config: Dict[str, Any]) -> ActionSpec:
+    """
+    Creates an ActionSpec based on the algorithm and configuration.
+    
+    :param algorithm: Algorithm name
+    :param config: Configuration dictionary
+    :return: ActionSpec object
+    """
+    data_conf = config.get('data', {})
+    action_columns = data_conf.get('action_columns', [])
+    
+    # Default to continuous actions
+    continuous_size = len(action_columns)
+    discrete_size = 0
+    discrete_branches = []
+    
+    # Special cases for algorithms that might use discrete actions
+    # Algorithms typically using discrete actions
+    discrete_algorithms = ['ppo_ce']  # Curiosity-based algorithms sometimes use discrete actions
+    
+    if algorithm in discrete_algorithms:
+        # For discrete actions, we'll assume a single discrete branch
+        continuous_size = 0
+        discrete_size = len(action_columns)
+        discrete_branches = [max(2, len(action_columns))]  # Assume at least 2 actions per branch
+    
+    # Override with explicit configuration if provided
+    model_conf = config.get('model', {})
+    action_spec_conf = model_conf.get('action_spec', {})
+    if action_spec_conf:
+        continuous_size = action_spec_conf.get('continuous_size', continuous_size)
+        discrete_size = action_spec_conf.get('discrete_size', discrete_size)
+        discrete_branches = action_spec_conf.get('discrete_branches', discrete_branches)
+    
+    return ActionSpec(
+        continuous_size=continuous_size,
+        discrete_branches=tuple(discrete_branches)
+    )
+
+
+def convert_csv_to_demo(args):
+    """
+    Converts CSV file to .demo format.
+    
+    :param args: Parsed command line arguments
+    """
+    if not args.demo:
+        print("Error: --demo argument requires a CSV file path.")
+        return 1
+    
+    # Check if CSV file exists
+    if not os.path.exists(args.demo):
+        print(f"Error: CSV file not found: {args.demo}")
+        return 1
+    
+    # Get other required arguments for conversion
+    if not args.config:
+        print("Error: --config argument is required for CSV to .demo conversion.")
+        return 1
+    
+    try:
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+    except Exception as e:
+        print(f"Error loading configuration: {e}")
+        return 1
+    
+    data_conf = config.get('data', {})
+    model_conf = config.get('model', {})
+    
+    csv_path = args.demo
+    observation_columns = data_conf.get('observation_columns', [])
+    action_columns = data_conf.get('action_columns', [])
+    
+    if not observation_columns or not action_columns:
+        print("Error: Both observation_columns and action_columns must be specified in the config file.")
+        return 1
+    
+    # Determine output path for .demo file
+    demo_path = args.output or os.path.splitext(csv_path)[0] + ".demo"
+    
+    # Determine action specification from model config
+    algorithm = model_conf.get('algorithm', 'ppo')
+    action_spec = get_action_spec_from_algorithm(algorithm, config)
+    
+    try:
+        # Import the conversion module
+        from mlagents.trainers.csv_to_demo_converter import convert_csv_to_demo as do_convert
+        
+        # Perform the conversion
+        do_convert(
+            csv_path=csv_path,
+            demo_path=demo_path,
+            observation_columns=observation_columns,
+            action_columns=action_columns,
+            action_spec=action_spec,
+            brain_name="SupervisedBrain",
+            demonstration_name=os.path.basename(csv_path)
+        )
+        
+        print(f"Successfully converted {csv_path} to {demo_path}")
+        return 0
+    except Exception as e:
+        print(f"Error during CSV to .demo conversion: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
 
 def get_hyperparameters(alg_name: str):
     if alg_name == "ppo":
@@ -32,6 +254,22 @@ def get_hyperparameters(alg_name: str):
         return SACSettings()
     if alg_name == "tdsac":
         return TDSACSettings()
+    if alg_name == "td3":
+        return TD3Settings()
+    if alg_name == "tqc":
+        return TQCSettings()
+    if alg_name == "dcac":
+        return DCACSettings()
+    if alg_name == "crossq":
+        return CrossQSettings()
+    if alg_name == "drqv2":
+        return DrQv2Settings()
+    if alg_name == "ppo_et":
+        return PPOETSettings()
+    if alg_name == "ppo_ce":
+        return PPOCESettings()
+    if alg_name == "sac_ae":
+        return SACAESettings()
     return PPOSettings() # Default to PPO
 
 def parse_network_settings(net_config: Dict[str, Any]) -> NetworkSettings:
@@ -56,7 +294,7 @@ def parse_network_settings(net_config: Dict[str, Any]) -> NetworkSettings:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Standalone supervised training for ML-Agents",
+        description="Standalone supervised training for ML-Agents. Can also convert CSV files to .demo format.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
@@ -75,6 +313,20 @@ def main():
     )
     
     parser.add_argument(
+        "--demo",
+        "-d",
+        type=str,
+        help="Path to the CSV file to convert to .demo format. Generates a .demo file for use with Unity."
+    )
+    
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        help="Output directory or file path for trained models or generated .demo files (overrides config)"
+    )
+    
+    parser.add_argument(
         "--csv",
         type=str,
         help="Path to the CSV file with training data (overrides config)"
@@ -83,15 +335,8 @@ def main():
     parser.add_argument(
         "--algorithm",
         type=str,
-        choices=["ppo", "sac", "tdsac"],
+        choices=["ppo", "sac", "tdsac", "td3", "tqc", "dcac", "crossq", "drqv2", "ppo_et", "ppo_ce", "sac_ae"],
         help="Algorithm to use (overrides algorithm list in config, trains only for this one)"
-    )
-    
-    parser.add_argument(
-        "--output",
-        "-o",
-        type=str,
-        help="Output directory for trained models (overrides config)"
     )
     
     parser.add_argument(
@@ -136,6 +381,11 @@ def main():
         except subprocess.CalledProcessError as e:
             print(f"Error during wizard execution: {e}")
         return 0
+
+    if args.demo:
+        # Handle CSV to .demo conversion
+        print("Converting CSV to .demo format for Unity ML-Agents...")
+        return convert_csv_to_demo(args)
 
     if not args.config:
         parser.error("The --config argument is required when not using --generate-yaml.")
