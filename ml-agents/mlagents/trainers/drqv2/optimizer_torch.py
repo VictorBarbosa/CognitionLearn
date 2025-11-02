@@ -99,26 +99,39 @@ class TorchDrQv2Optimizer(TorchSACOptimizer):
         :return: A tuple of augmented obs and next_obs.
         """
         n, c, h, w = obs.shape
+        device = obs.device
+        
         # Add padding
         padded_obs = torch.nn.functional.pad(obs, (pad, pad, pad, pad), mode="replicate")
         padded_next_obs = torch.nn.functional.pad(
             next_obs, (pad, pad, pad, pad), mode="replicate"
         )
 
-        # Generate random shifts, one for each item in the batch
-        rand_h = torch.randint(0, 2 * pad + 1, (n,))
-        rand_w = torch.randint(0, 2 * pad + 1, (n,))
+        # Generate random shifts for the entire batch at once
+        rand_h = torch.randint(0, 2 * pad + 1, (n, 1, 1, 1), device=device, dtype=torch.long)
+        rand_w = torch.randint(0, 2 * pad + 1, (n, 1, 1, 1), device=device, dtype=torch.long)
 
-        # Apply the same shifts to obs and next_obs
-        # This is done by iterating and cropping, which can be slow but is clear.
-        # A vectorized version would be more efficient but harder to read.
-        cropped_obs = []
-        cropped_next_obs = []
-        for i in range(n):
-            h_start, w_start = rand_h[i], rand_w[i]
-            cropped_obs.append(padded_obs[i, :, h_start : h_start + h, w_start : w_start + w])
-            cropped_next_obs.append(
-                padded_next_obs[i, :, h_start : h_start + h, w_start : w_start + w]
-            )
+        # Generate coordinate grids
+        h_coords = torch.arange(h, device=device).view(1, 1, h, 1).expand(n, 1, h, 1)
+        w_coords = torch.arange(w, device=device).view(1, 1, 1, w).expand(n, 1, 1, w)
+        
+        # Add the random shifts
+        h_indices = h_coords + rand_h
+        w_indices = w_coords + rand_w
 
-        return torch.stack(cropped_obs), torch.stack(cropped_next_obs)
+        # Expand indices to cover all channels
+        h_indices = h_indices.expand(n, c, h, w)
+        w_indices = w_indices.expand(n, c, h, w)
+
+        # Generate channel indices
+        c_indices = torch.arange(c, device=device).view(1, c, 1, 1).expand(n, c, h, w)
+
+        # Use advanced indexing to extract the shifted patches
+        # For the batch dimension
+        batch_indices = torch.arange(n, device=device).view(n, 1, 1, 1).expand(n, c, h, w)
+
+        # Apply the shifts using advanced indexing
+        augmented_obs = padded_obs[batch_indices, c_indices, h_indices, w_indices]
+        augmented_next_obs = padded_next_obs[batch_indices, c_indices, h_indices, w_indices]
+
+        return augmented_obs, augmented_next_obs

@@ -173,21 +173,22 @@ class TorchDCACOptimizer(TorchSACOptimizer):
 
         # Perform backward passes
         total_value_loss.backward() # Gradients for Q-net and V-net
-        entropy_loss.backward()     # Gradients for entropy_coef and Actor-net
 
-        # Conditionally perform policy_loss backward
+        # Conditionally perform policy and entropy loss backward
+        # Both policy and entropy coefficient updates should be skipped together
         if advantage.item() < self.destructive_threshold:
             destructive_updates_skipped = 1.0
         else:
             policy_loss.backward()
+            entropy_loss.backward()  # Only update entropy coefficient when updating policy
 
         # Perform optimizer steps
         self.value_optimizer.step()
-        self.entropy_optimizer.step()
         if advantage.item() < self.destructive_threshold:
-            pass # Policy update skipped
+            pass # Policy and entropy coefficient updates skipped
         else:
             self.policy_optimizer.step()
+            self.entropy_optimizer.step()
 
         # Update target network
         ModelUtils.soft_update(self._critic, self.target_network, self.tau)

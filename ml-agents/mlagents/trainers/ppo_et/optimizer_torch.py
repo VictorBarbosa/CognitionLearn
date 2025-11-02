@@ -212,7 +212,9 @@ class TorchPPOETOptimizer(TorchOptimizer):
         if self.adaptive_entropy_temperature:
             self.alpha_optimizer.zero_grad()
             # Calcular a perda para o alpha (minimizar a diferença entre entropia e target_entropy)
-            alpha_loss = -(self.log_alpha * (ModelUtils.masked_mean(entropy, loss_masks).detach() + self.target_entropy))
+            # Formulação padronizada: alpha_loss = -log_alpha * (entropy + target_entropy).mean()
+            mean_entropy = ModelUtils.masked_mean(entropy, loss_masks)
+            alpha_loss = -(self.log_alpha * (mean_entropy.detach() + self.target_entropy))
             alpha_loss.backward()
             self.alpha_optimizer.step()
 
