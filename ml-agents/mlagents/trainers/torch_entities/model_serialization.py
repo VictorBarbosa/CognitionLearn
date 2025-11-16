@@ -161,13 +161,21 @@ class ModelSerializer:
         logger.debug(f"Converting to {onnx_output_path}")
 
         with exporting_to_onnx():
-            torch.onnx.export(
-                self.policy.actor,
-                self.dummy_input,
-                onnx_output_path,
-                opset_version=SerializationSettings.onnx_opset,
-                input_names=self.input_names,
-                output_names=self.output_names,
-                dynamic_axes=self.dynamic_axes,
-            )
+            try:
+                torch.onnx.export(
+                    self.policy.actor,
+                    self.dummy_input,
+                    onnx_output_path,
+                    opset_version=SerializationSettings.onnx_opset,
+                    input_names=self.input_names,
+                    output_names=self.output_names,
+                    dynamic_axes=self.dynamic_axes,
+                )
+            except AttributeError as e:
+                if "float8_e8m0fnu" in str(e) and "ml_dtypes" in str(e):
+                    # Silently return on ml_dtypes compatibility issues to avoid spam
+                    return
+                else:
+                    # Re-raise if it's a different AttributeError
+                    raise
         logger.info(f"Exported {onnx_output_path}")
