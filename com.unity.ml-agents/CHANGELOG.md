@@ -7,15 +7,26 @@ and this project adheres to
 [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Minor Changes
+#### com.unity.ml-agents (C#)
+- Fixed tensor indexing to use correct CHW layout (#6239)
+- Updated the installation doc (#6242)
+
+#### ml-agents / ml-agents-envs
+- Set the Torch version constraint to 2.8 (#6251)
+- Fixed CUDA/CPU mismatch in threaded training (#6245)
+
+## [4.0.0] - 2025-08-28
 ### Major Changes
 #### com.unity.ml-agents (C#)
 - Upgraded to Inference Engine 2.2.1 (#6212)
 - The minimum supported Unity version was updated to 6000.0. (#6207)
-- Merge the extension package com.unity.ml-agents.extensions to the main package com.unity.ml-agents. (#6227)
+- Merged the extension package com.unity.ml-agents.extensions to the main package com.unity.ml-agents. (#6227)
 
 ### Minor Changes
 #### com.unity.ml-agents (C#)
-- Remove broken sample from the package (#6230)
+- Removed broken sample from the package (#6230)
+- Moved to Unity Package documentation as the primary developer documentation. (#6232)
 
 #### ml-agents / ml-agents-envs
 - Bumped grpcio version to >=1.11.0,<=1.53.2 (#6208)
