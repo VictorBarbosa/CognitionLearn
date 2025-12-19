@@ -9,12 +9,14 @@ and this project adheres to
 ## [Unreleased]
 ### Minor Changes
 #### com.unity.ml-agents (C#)
+- Upgraded to Inference Engine 2.4.1 (#6269)
 - Fixed tensor indexing to use correct CHW layout (#6239)
 - Updated the installation doc (#6242)
 
 #### ml-agents / ml-agents-envs
 - Set the Torch version constraint to 2.8 (#6251)
 - Fixed CUDA/CPU mismatch in threaded training (#6245)
+- Fixed HTTP Error when importing UnityToGymWrapper (#6269)
 
 ## [4.0.0] - 2025-08-28
 ### Major Changes
