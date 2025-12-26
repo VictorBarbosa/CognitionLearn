@@ -2,7 +2,7 @@
 
 CognitionLearn is an enhanced version of the original Unity ML-Agents Toolkit with a modern GUI interface. The `cognition-learn` package provides a set of reinforcement and imitation learning algorithms designed to be used with Unity environments. The algorithms interface with the Python API provided by the `mlagents_envs` package.
 
-The algorithms can be accessed using the: `cognition-learn` access point with a modern GUI interface. See [here](../com.unity.ml-agents/Documentation~/Training-ML-Agents.md) for more information on using this package.
+The algorithms can be accessed using the: `cognition-learn` access point with a modern GUI interface. The original `mlagents-learn` command is still supported for backward compatibility. See [here](../com.unity.ml-agents/Documentation~/Training-ML-Agents.md) for more information on using this package.
 
 ## Features
 
@@ -26,6 +26,14 @@ To launch the CognitionLearn GUI interface, simply run:
 ```sh
 cognition-learn
 ```
+
+To run in command-line mode:
+
+```sh
+cognition-learn <configuration_file_path.yaml> --run-id=<run_id>
+```
+
+For backward compatibility, the original `mlagents-learn` command is still available.
 
 ## Usage & More Information
 

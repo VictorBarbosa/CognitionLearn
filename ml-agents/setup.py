@@ -36,14 +36,14 @@ with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="mlagents",
+    name="cognitionlearn",
     version=VERSION,
-    description="Unity Machine Learning Agents",
+    description="CognitionLearn - Advanced ML-Agents Interface",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Unity-Technologies/ml-agents",
-    author="Unity Technologies",
-    author_email="ML-Agents@unity3d.com",
+    url="https://github.com/CognitionLearn/cognitionlearn",
+    author="CognitionLearn Team",
+    author_email="support@cognitionlearn.org",
     classifiers=[
         "Intended Audience :: Developers",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -57,7 +57,6 @@ setup(
         # Test-only dependencies should go in test_requirements.txt, not here.
         "grpcio>=1.11.0,<=1.53.2",
         "h5py>=2.9.0",
-        f"mlagents_envs=={VERSION}",
         "numpy>=1.23.5,<1.24.0",
         "Pillow>=4.2.1",
         "protobuf>=3.6,<3.21",
