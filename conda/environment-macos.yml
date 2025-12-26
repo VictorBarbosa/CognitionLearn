@@ -2,7 +2,7 @@
 
 #conda env update -f environment.yml --prune
 
-name: CustomMLagentsEnv
+name: CognitionLearn
 channels:
   - defaults
   - conda-forge
@@ -69,4 +69,4 @@ dependencies:
       - urllib3==2.5.0
       - pandas==2.2.1
 
-# prefix: /media/Store/conda_envs/CustomMLagentsEnv
+# prefix: /media/Store/conda_envs/CognitionLearn
