@@ -27,6 +27,7 @@ dependencies:
   - xorg-libxau
   - xorg-libxdmcp
   - xorg-xorgproto
+  - qt
   - tzdata
   - pip:
       # 🧠 Instala o Torch usando o repositório oficial de wheels
@@ -68,5 +69,6 @@ dependencies:
       - typing-extensions==4.15.0
       - urllib3==2.5.0
       - pandas==2.2.1
+      - PyQt6==6.8.0
 
 # prefix: /media/Store/conda_envs/CognitionLearn

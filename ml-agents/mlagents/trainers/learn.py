@@ -299,7 +299,16 @@ def main():
             print(f"Could not find the configuration generator. Error: {e}. Make sure you are running from the root of the repository.")
         sys.exit(0)
 
-    run_cli(parse_command_line())
+    # Launch GUI if no arguments provided (or only script name)
+    if len(sys.argv) <= 1 or (len(sys.argv) == 2 and sys.argv[1] in ['-h', '--help', 'gui']):
+        try:
+            from mlagents.gui.main_window import launch_gui
+            launch_gui()
+        except ImportError as e:
+            print(f"Could not launch GUI. Error: {e}. Falling back to CLI.")
+            run_cli(parse_command_line())
+    else:
+        run_cli(parse_command_line())
 
 
 # For python debugger to directly run this script
