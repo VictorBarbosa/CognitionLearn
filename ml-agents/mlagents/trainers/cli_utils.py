@@ -306,6 +306,13 @@ def _create_parser() -> argparse.ArgumentParser:
         "observations.",
     )
 
+    argparser.add_argument(
+        "-gy",
+        "--generate-yaml",
+        action="store_true",
+        help="[EXPERIMENTAL] Launch an interactive wizard to generate a training configuration YAML file.",
+    )
+
     torch_conf = argparser.add_argument_group(title="Torch Configuration")
     torch_conf.add_argument(
         "--torch-device",

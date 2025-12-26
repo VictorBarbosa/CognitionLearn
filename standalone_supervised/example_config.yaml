@@ -1,0 +1,48 @@
+# Exemplo de configuração para treinamento supervisionado standalone
+
+# Configurações dos dados de treinamento
+data:
+  csv_path: "./data/training_data.csv"
+  observation_columns: []
+  action_columns: []
+  validation_split: 0.2
+  shuffle: true
+  augment_noise: 0.01
+
+# Configurações do modelo
+model:
+  algorithm: "ppo"  # ppo, sac, tdsac
+  network_settings:
+    hidden_units: 256
+    num_layers: 2
+    normalize: true
+    memory_size: 0
+    use_recurrent: false
+
+# Configurações de treinamento
+training:
+  epochs: 10
+  batch_size: 128
+  learning_rate: 3e-4
+  validation_split: 0.2
+  shuffle: true
+  augment_noise: 0.01
+  early_stopping: true
+  patience: 5
+  min_delta: 0.001
+  dropout_rate: 0.1
+  weight_decay: 1e-4
+  lr_patience: 5
+
+# Configurações de saída
+output:
+  dir: "./results"
+  checkpoint_interval: 1000
+  export_onnx: true
+  export_pt: true
+
+# Configurações adicionais
+additional_settings:
+  device: "cuda"  # cuda ou cpu
+  seed: 42
+  verbose: true

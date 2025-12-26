@@ -21,6 +21,7 @@ def _dict_to_str(param_dict: Dict[str, Any], num_tabs: int) -> str:
     """
     Takes a parameter dictionary and converts it to a human-readable string.
     Recurses if there are multiple levels of dict. Used to print out hyperparameters.
+    Omits key-value pairs where the value is None.
 
     :param param_dict: A Dictionary of key, value parameters.
     :return: A string version of this dictionary.
@@ -28,13 +29,17 @@ def _dict_to_str(param_dict: Dict[str, Any], num_tabs: int) -> str:
     if not isinstance(param_dict, dict):
         return str(param_dict)
     else:
+        # Filtrar os itens que não têm valor None
+        filtered_items = {k: v for k, v in param_dict.items() if v is not None}
+        if not filtered_items:
+            return ""  # Retornar string vazia se todos os itens forem None
         append_newline = "\n" if num_tabs > 0 else ""
         return append_newline + "\n".join(
             [
                 "\t"
                 + "  " * num_tabs
-                + f"{x}:\t{_dict_to_str(param_dict[x], num_tabs + 1)}"
-                for x in param_dict
+                + f"{x}:\t{_dict_to_str(filtered_items[x], num_tabs + 1)}"
+                for x in filtered_items
             ]
         )
 

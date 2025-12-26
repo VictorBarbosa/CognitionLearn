@@ -41,6 +41,7 @@ class EnvManager(ABC):
         self.policies: Dict[BehaviorName, Policy] = {}
         self.agent_managers: Dict[BehaviorName, AgentManager] = {}
         self.first_step_infos: List[EnvironmentStep] = []
+        self._paused = False  # Flag para indicar se o ambiente está pausado
 
     def set_policy(self, brain_name: BehaviorName, policy: Policy) -> None:
         self.policies[brain_name] = policy
@@ -97,12 +98,38 @@ class EnvManager(ABC):
     def close(self):
         pass
 
+    def pause_environment(self) -> None:
+        """
+        Pauses the environment to prevent it from continuing to process steps.
+        Useful for periods of intensive training like supervised learning.
+        """
+        self._paused = True
+        logger.info("Ambiente pausado.")
+
+    def resume_environment(self) -> None:
+        """
+        Resumes normal environment processing after a pause.
+        """
+        self._paused = False
+        logger.info("Ambiente retomado.")
+
+    def is_environment_paused(self) -> bool:
+        """
+        Checks if the environment is currently paused.
+        :return: True if the environment is paused, False otherwise
+        """
+        return self._paused
+
     def get_steps(self) -> List[EnvironmentStep]:
         """
         Updates the policies, steps the environments, and returns the step information from the environments.
         Calling code should pass the returned EnvironmentSteps to process_steps() after calling this.
         :return: The list of EnvironmentSteps
         """
+        # If the environment is paused, do not process steps
+        if self._paused:
+            return []
+
         # If we had just reset, process the first EnvironmentSteps.
         # Note that we do it here instead of in reset() so that on the very first reset(),
         # we can create the needed AgentManagers before calling advance() and processing the EnvironmentSteps.

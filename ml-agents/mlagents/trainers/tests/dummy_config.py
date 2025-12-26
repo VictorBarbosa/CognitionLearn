@@ -16,6 +16,12 @@ from mlagents.trainers.settings import (
 from mlagents.trainers.ppo.optimizer_torch import PPOSettings
 from mlagents.trainers.sac.optimizer_torch import SACSettings
 from mlagents.trainers.poca.optimizer_torch import POCASettings
+from mlagents.trainers.crossq.optimizer_torch import CrossQSettings
+from mlagents.trainers.td3.optimizer_torch import TD3Settings
+from mlagents.trainers.tdsac.optimizer_torch import TDSACSettings
+from mlagents.trainers.tqc.optimizer_torch import TQCSettings
+from mlagents.trainers.drqv2.optimizer_torch import DrQv2Settings
+from mlagents.trainers.dcac.optimizer_torch import DCACSettings
 
 CONTINUOUS_DEMO_PATH = os.path.dirname(os.path.abspath(__file__)) + "/test.demo"
 DISCRETE_DEMO_PATH = os.path.dirname(os.path.abspath(__file__)) + "/testdcvis.demo"
@@ -27,6 +33,7 @@ _PPO_CONFIG = TrainerSettings(
         learning_rate_schedule=ScheduleType.CONSTANT,
         batch_size=16,
         buffer_size=64,
+        checkpoint_interval=5000,
     ),
     network_settings=NetworkSettings(num_layers=1, hidden_units=32),
     summary_freq=500,
@@ -44,6 +51,7 @@ _SAC_CONFIG = TrainerSettings(
         buffer_size=5000,
         tau=0.01,
         init_entcoef=0.01,
+        checkpoint_interval=5000,
     ),
     network_settings=NetworkSettings(num_layers=1, hidden_units=16),
     summary_freq=100,
@@ -76,6 +84,132 @@ def sac_dummy_config():
 
 def poca_dummy_config():
     return copy.deepcopy(_POCA_CONFIG)
+
+
+_CROSSQ_CONFIG = TrainerSettings(
+    trainer_type="crossq",
+    hyperparameters=CrossQSettings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        checkpoint_interval=5000,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+
+def crossq_dummy_config():
+    return copy.deepcopy(_CROSSQ_CONFIG)
+
+
+_TD3_CONFIG = TrainerSettings(
+    trainer_type="td3",
+    hyperparameters=TD3Settings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        checkpoint_interval=5000,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+def td3_dummy_config():
+    return copy.deepcopy(_TD3_CONFIG)
+
+_TDSAC_CONFIG = TrainerSettings(
+    trainer_type="tdsac",
+    hyperparameters=TDSACSettings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        init_entcoef=0.01,
+        checkpoint_interval=5000,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+def tdsac_dummy_config():
+    return copy.deepcopy(_TDSAC_CONFIG)
+
+_TQC_CONFIG = TrainerSettings(
+    trainer_type="tqc",
+    hyperparameters=TQCSettings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        init_entcoef=0.01,
+        checkpoint_interval=5000,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+def tqc_dummy_config():
+    return copy.deepcopy(_TQC_CONFIG)
+
+_DRQV2_CONFIG = TrainerSettings(
+    trainer_type="drqv2",
+    hyperparameters=DrQv2Settings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        init_entcoef=0.01,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+def drqv2_dummy_config():
+    return copy.deepcopy(_DRQV2_CONFIG)
+
+_DCAC_CONFIG = TrainerSettings(
+    trainer_type="dcac",
+    hyperparameters=DCACSettings(
+        learning_rate=5.0e-3,
+        learning_rate_schedule=ScheduleType.CONSTANT,
+        batch_size=8,
+        buffer_init_steps=100,
+        buffer_size=5000,
+        tau=0.01,
+        init_entcoef=0.01,
+    ),
+    network_settings=NetworkSettings(num_layers=1, hidden_units=16),
+    summary_freq=100,
+    max_steps=1000,
+    threaded=False,
+)
+
+def dcac_dummy_config():
+    return copy.deepcopy(_DCAC_CONFIG)
+
 
 
 @pytest.fixture

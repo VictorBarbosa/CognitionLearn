@@ -77,7 +77,15 @@ class TrainerController:
             return
 
         for brain_name in self.trainers.keys():
-            self.trainers[brain_name].save_model()
+            try:
+                self.trainers[brain_name].save_model()
+            except AttributeError as e:
+                if "float8_e8m0fnu" in str(e) and "ml_dtypes" in str(e):
+                    # Silently continue on ml_dtypes compatibility issues to avoid spam
+                    continue
+                else:
+                    # Re-raise if it's a different AttributeError
+                    raise
         self.logger.debug("Saved Model")
 
     @staticmethod

@@ -41,6 +41,24 @@ def check_and_structure(key: str, value: Any, class_type: type) -> Any:
         raise TrainerConfigError(
             f"The option {key} was specified in your YAML file for {class_type.__name__}, but is invalid."
         )
+    # Verificar se o valor é None e se o tipo permite None
+    if value is None:
+        field_type = attr_fields_dict[key].type
+        # Se o tipo do campo permite None (Union com None), retornar None
+        if hasattr(field_type, '__origin__') and field_type.__origin__ is Union:
+            if type(None) in field_type.__args__:
+                return None
+        # Se o valor é None mas o campo não permite None, lançar um erro mais claro
+        # ou usar um valor padrão se possível
+        # Neste caso, vamos verificar se há um valor padrão
+        if hasattr(attr_fields_dict[key], 'default') and attr_fields_dict[key].default is not attr.NOTHING:
+            return attr_fields_dict[key].default
+        # Caso contrário, lançar um erro mais claro
+        raise TrainerConfigError(
+            f"The option {key} was specified as None in your YAML file for {class_type.__name__}, "
+            f"but the field requires a value of type {field_type}. "
+            f"Please provide a valid value or remove this option to use the default."
+        )
     # Apply cattr structure to the values
     return cattr.structure(value, attr_fields_dict[key].type)
 
@@ -142,6 +160,24 @@ class NetworkSettings:
 
 
 @attr.s(auto_attribs=True)
+class SupervisedLearningSettings:
+    csv_path: str
+    observation_columns: List[str]
+    action_columns: List[str]
+    num_epoch: int = 10
+    batch_size: int = 1280
+    learning_rate: float = 3e-4
+    checkpoint_interval: int = 5000
+    validation_split: float = 0.2
+    shuffle: bool = True
+    augment_noise: float = 0.01
+    early_stopping: bool = True
+    patience: int = 5
+    min_delta: float = 0.001
+    init_path: Optional[str] = None
+
+
+@attr.s(auto_attribs=True)
 class BehavioralCloningSettings:
     demo_path: str
     steps: int = 0
@@ -159,11 +195,13 @@ class HyperparamSettings:
     buffer_size: int = 10240
     learning_rate: float = 3.0e-4
     learning_rate_schedule: ScheduleType = ScheduleType.CONSTANT
+    checkpoint_interval: int = 5000
 
 
 @attr.s(auto_attribs=True)
 class OnPolicyHyperparamSettings(HyperparamSettings):
     num_epoch: int = 3
+    checkpoint_interval: int = 5000
 
 
 @attr.s(auto_attribs=True)
@@ -174,6 +212,7 @@ class OffPolicyHyperparamSettings(HyperparamSettings):
     steps_per_update: float = 1
     save_replay_buffer: bool = False
     reward_signal_steps_per_update: float = 4
+    checkpoint_interval: int = 5000
 
 
 # INTRINSIC REWARD SIGNALS #############################################################
@@ -639,11 +678,30 @@ class TrainerSettings(ExportableSettings):
     threaded: bool = False
     self_play: Optional[SelfPlaySettings] = None
     behavioral_cloning: Optional[BehavioralCloningSettings] = None
+    ppo: Optional[Dict] = attr.ib(default=None)
+    sac: Optional[Dict] = attr.ib(default=None)
+    td3: Optional[Dict] = attr.ib(default=None)
+    tdsac: Optional[Dict] = attr.ib(default=None)
+    tqc: Optional[Dict] = attr.ib(default=None)
+    poca: Optional[Dict] = attr.ib(default=None)
+    drqv2: Optional[Dict] = attr.ib(default=None)
+    dcac: Optional[Dict] = attr.ib(default=None)
+    crossq: Optional[Dict] = attr.ib(default=None)
+    # Algoritmos personalizados
+    ppo_et: Optional[Dict] = attr.ib(default=None)
+    ppo_ce: Optional[Dict] = attr.ib(default=None)
+    sac_ae: Optional[Dict] = attr.ib(default=None)
+    
+    # Supervised learning settings
+    supervised: Optional['SupervisedLearningSettings'] = attr.ib(default=None)
 
     cattr.register_structure_hook_func(
         lambda t: t == Dict[RewardSignalType, RewardSignalSettings],
         RewardSignalSettings.structure,
     )
+    
+    # Register hook for SupervisedLearningSettings
+    # No special structure function needed, will use default cattr structure
 
     @network_settings.validator
     def _check_batch_size_seq_length(self, attribute, value):
@@ -720,6 +778,9 @@ class TrainerSettings(ExportableSettings):
             elif key == "trainer_type":
                 if val not in all_trainer_types.keys():
                     raise TrainerConfigError(f"Invalid trainer type {val} was found")
+            elif key == "supervised":
+                if val is not None:  # Only process if supervised settings are provided
+                    d_copy[key] = strict_to_cls(val, SupervisedLearningSettings)
             else:
                 d_copy[key] = check_and_structure(key, val, t)
         return t(**d_copy)
@@ -824,6 +885,7 @@ class EnvironmentSettings:
     restarts_rate_limit_period_s: int = parser.get_default(
         "restarts_rate_limit_period_s"
     )
+    worker_trainer_types: Optional[List[str]] = None
 
     @num_envs.validator
     def validate_num_envs(self, attribute, value):
@@ -888,6 +950,7 @@ class RunOptions(ExportableSettings):
     cattr.register_structure_hook(
         TrainerSettings.DefaultTrainerDict, TrainerSettings.dict_to_trainerdict
     )
+    cattr.register_structure_hook(SupervisedLearningSettings, strict_to_cls)
     cattr.register_unstructure_hook(collections.defaultdict, defaultdict_to_dict)
 
     @staticmethod

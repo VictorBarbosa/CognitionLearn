@@ -1,0 +1,11 @@
+[package]
+name = "cognition-learn"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]  # This creates a dynamic library that can be used from C#
+
+[dependencies]
+
+[workspace]

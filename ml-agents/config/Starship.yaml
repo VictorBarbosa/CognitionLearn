@@ -1,0 +1,375 @@
+default_settings: null
+behaviors: # Define o comportamento dos agentes no ambiente.
+  Starship: # ATENÇÃO: Verifique se este é o "Behavior Name" no seu Agente no Unity.
+    trainer_type: all # Tipo de treinador a ser utilizado (todos os sub-treinadores serão utilizados).
+    hyperparameters: # Hiperparâmetros para o treinamento.
+      batch_size: 2048 # Tamanho do lote usado para atualização da rede neural.
+      buffer_size: 500000 # Tamanho do buffer de replay para armazenar experiências.
+      learning_rate: 0.0005 # Taxa de aprendizado para o otimizador.
+      learning_rate_schedule: linear # Agendamento da taxa de aprendizado (linear).
+    checkpoint_interval: 5000 # Intervalo (em passos) para salvar checkpoints do modelo.
+    network_settings: # Configurações da rede neural.
+      normalize: true # Normalizar as entradas da rede.
+      hidden_units: 256 # Número de unidades em cada camada oculta.
+      num_layers: 3 # Número de camadas ocultas.
+      vis_encode_type: simple # Tipo de codificação visual (simples).
+      goal_conditioning_type: hyper # Tipo de condicionamento de objetivo (hiper).
+      deterministic: false # Se a rede deve ser determinística.
+      memory:
+        sequence_length: 128
+        memory_size: 256
+    reward_signals: # Configurações dos sinais de recompensa.
+      extrinsic: # Recompensa extrínseca (do ambiente).
+        gamma: 0.99 # Fator de desconto para recompensas futuras.
+        strength: 1.0 # Força da recompensa.
+        network_settings: # Configurações da rede neural para a recompensa.
+          normalize: true # Normalizar as entradas da rede.
+          hidden_units: 256 # Número de unidades em cada camada oculta.
+          num_layers: 2 # Número de camadas ocultas.
+          vis_encode_type: simple # Tipo de codificação visual (simples).
+          goal_conditioning_type: hyper # Tipo de condicionamento de objetivo (hiper).
+          deterministic: false # Se a rede deve ser determinística.
+    keep_checkpoints: 50 # Número máximo de checkpoints a serem mantidos.
+    max_steps: 100000000 # Número máximo de passos de treinamento.
+    time_horizon: 512 # Comprimento da sequência para coleta de experiência.
+    summary_freq: 1000 # Frequência (em passos) para escrever summaries no TensorBoard.
+    threaded: false # Se o treinamento deve ser multi-threaded.
+
+    # --- Sub-trainer configurations ---
+
+    ppo:
+      trainer_type: ppo
+      hyperparameters:
+        batch_size: 2048
+        buffer_size: 500000
+        learning_rate: 0.0005
+        beta: 0.002
+        epsilon: 0.2
+        lambd: 0.95
+        num_epoch: 10
+        learning_rate_schedule: linear
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    sac:
+      trainer_type: sac
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        init_entcoef: 0.1
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    td3:
+      trainer_type: td3
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        policy_delay: 2
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    tdsac:
+      trainer_type: tdsac
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        init_entcoef: 0.1
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    tqc:
+      trainer_type: tqc
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        init_entcoef: 0.1
+        n_quantiles: 25
+        n_to_drop: 2
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    dcac:
+      trainer_type: dcac
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+        init_entcoef: 0.1
+        destructive_threshold: 0.0
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+    
+    crossq:
+      trainer_type: crossq
+      hyperparameters:
+        learning_rate: 0.0005
+        learning_rate_schedule: linear
+        batch_size: 256
+        buffer_size: 1000000
+        buffer_init_steps: 20000
+        tau: 0.005
+        steps_per_update: 1.0
+        save_replay_buffer: true
+      network_settings:
+        normalize: true
+        hidden_units: 256
+        num_layers: 3
+        memory:
+          memory_size: 256
+          sequence_length: 128
+      reward_signals:
+        extrinsic:
+          gamma: 0.99
+          strength: 1.0
+          network_settings:
+            normalize: true
+            hidden_units: 256
+            num_layers: 2
+      keep_checkpoints: 50
+      max_steps: 200000000
+      time_horizon: 512
+      summary_freq: 1000
+
+    ppo_et:
+      trainer_type: ppo_et
+      hyperparameters:
+        learning_rate: 3.0e-4
+        beta: 5.0e-3
+        epsilon: 0.2
+        lambd: 0.95
+        num_epoch: 3
+        buffer_size: 10240
+        entropy_temperature: 1.0
+        adaptive_entropy_temperature: true
+        target_entropy: null
+      reward_signals:
+        extrinsic:
+          strength: 1.0
+          gamma: 0.99
+
+    ppo_ce:
+      trainer_type: ppo_ce
+      hyperparameters:
+        learning_rate: 3.0e-4
+        beta: 5.0e-3
+        epsilon: 0.2
+        lambd: 0.95
+        num_epoch: 3
+        buffer_size: 10240
+        curiosity_strength: 0.01
+        curiosity_gamma: 0.99
+        curiosity_learning_rate: 3e-4
+        curiosity_hidden_units: 128
+        curiosity_num_layers: 2
+        imagination_horizon: 5
+        use_imagination_augmented: true
+      reward_signals:
+        extrinsic:
+          strength: 1.0
+          gamma: 0.99
+
+    sac_ae:
+      trainer_type: sac_ae
+      hyperparameters:
+        learning_rate: 3.0e-4
+        batch_size: 128
+        buffer_size: 50000
+        buffer_init_steps: 1000
+        tau: 0.005
+        steps_per_update: 1.0
+        init_entcoef: 0.1
+        latent_size: 512
+        ae_learning_rate: 1e-3
+        ae_hidden_units: 256
+        ae_num_layers: 2
+        world_model_learning_rate: 3e-4
+        world_model_hidden_units: 256
+        world_model_num_layers: 2
+        use_autoencoder: true
+        use_world_model: true
+        ae_loss_weight: 1.0
+        world_model_loss_weight: 1.0
+        reconstruction_loss_weight: 1.0
+      reward_signals:
+        extrinsic:
+          strength: 1.0
+          gamma: 0.99
+
+   
+env_settings: # Configurações do ambiente.
+  worker_trainer_types: [tdsac,dcac,td3,crossq,tqc,sac,ppo,ppo_et,ppo_ce,sac_ae] # Tipos de treinadores a serem usados pelos workers.
+  env_path: /media/Store/git/UnityStarshipLaunchigLanding/Linux/App # Caminho para o executável do ambiente.
+  env_args: null # Argumentos de linha de comando para o ambiente.
+  base_port: 5005 # Porta base para comunicação com o ambiente.
+  num_envs: 11 # Número de instâncias do ambiente a serem executadas em paralelo.
+  num_areas: 1 # Número de áreas no ambiente.
+  timeout_wait: 60 # Tempo máximo (em segundos) para esperar por uma resposta do ambiente.
+  seed: -1 # Semente para geração de números aleatórios (-1 para semente aleatória).
+  max_lifetime_restarts: 60 # Número máximo de reinicializações do ambiente durante o treinamento.
+  restarts_rate_limit_n: 1 # Número máximo de reinicializações permitidas dentro de um período.
+  restarts_rate_limit_period_s: 60 # Duração do período para limitar a taxa de reinicializações (em segundos).
+
+# --- PARÂMETROS INICIAIS DO CURRÍCULO ---
+# O agente começará com estes valores. A progressão para as próximas lições
+# é controlada automaticamente pelo script StarshipFullControlAgent.cs.
+environment_parameters:
+  startHeight: 7  # Altura inicial da Lição 1
+  startAngle: 0    # Ângulo inicial da Lição 1
+  incrementor: .5   # Incremento para cada lição subsequente
+  maxSpeed: 4
+  num_areas: 1
+ 
+engine_settings: # Configurações do motor Unity.
+  width: 250 # Largura da janela do ambiente.
+  height: 250 # Altura da janela do ambiente.
+  quality_level: 0 # Nível de qualidade gráfica.
+  time_scale: 100.0 # Escala de tempo do ambiente.
+  target_frame_rate: 60 # Taxa de quadros alvo.
+  capture_frame_rate: 0 # Taxa de quadros para captura (0 para desativado).
+  no_graphics: true # Se o ambiente deve ser executado sem gráficos.
+
+checkpoint_settings: # Configurações de checkpoint.
+  run_id: full_control_run # Mude o ID da execução para não sobrescrever treinos antigos
+  initialize_from: null
+  load_model: false
+  resume: false
+  force: false
+  train_model: true
+  inference: false
+  results_dir: results
+
+torch_settings: # Configurações do PyTorch.
+  device: cuda
+debug: false

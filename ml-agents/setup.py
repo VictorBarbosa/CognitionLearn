@@ -81,6 +81,7 @@ setup(
             "mlagents-run-experiment=mlagents.trainers.run_experiment:main",
             "mlagents-push-to-hf=mlagents.utils.push_to_hf:main",
             "mlagents-load-from-hf=mlagents.utils.load_from_hf:main",
+            "mlagents-supervised=mlagents.trainers.mlagents_supervised:main",
         ],
         # Plugins - each plugin type should have an entry here for the default behavior
         ML_AGENTS_STATS_WRITER: [

@@ -205,6 +205,12 @@ class LSTM(MemoryModule):
         self, input_tensor: torch.Tensor, memories: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
 
+        if memories is None:
+            batch_size = input_tensor.shape[0]
+            memories = torch.zeros(
+                1, batch_size, self.memory_size, device=input_tensor.device
+            )
+
         if exporting_to_onnx.is_exporting():
             # This transpose is needed both at input and output of the LSTM when
             # exporting because ONNX will expect (sequence_len, batch, memory_size)
