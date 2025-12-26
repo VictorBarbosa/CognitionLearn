@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CognitionLearn - ML-Agents with GUI")
+        self.setWindowTitle("CognitionLearn - Advanced ML-Agents Interface")
         self.setGeometry(100, 100, 800, 600)
 
         # Enable dark mode
@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
 
         # Title label
-        title_label = QLabel("CognitionLearn - ML-Agents with GUI")
+        title_label = QLabel("CognitionLearn - Advanced ML-Agents Interface")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #64B5F6; padding: 10px;")
         main_layout.addWidget(title_label)
@@ -220,7 +220,8 @@ class MainWindow(QMainWindow):
         
         # Initialize console with welcome message
         self.console_output.append("Welcome to CognitionLearn!")
-        self.console_output.append("This is a GUI interface for ML-Agents training.")
+        self.console_output.append("Advanced interface for ML-Agents training.")
+        self.console_output.append("Use this GUI to configure and control your training sessions.")
         self.console_output.append("")
 
     def set_dark_theme(self):

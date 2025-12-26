@@ -42,6 +42,7 @@ TRAINING_STATUS_FILE_NAME = "training_status.json"
 
 def get_version_string() -> str:
     return f""" Version information:
+  CognitionLearn: {mlagents.trainers.__version__},
   ml-agents: {mlagents.trainers.__version__},
   ml-agents-envs: {mlagents_envs.__version__},
   Communicator API: {UnityEnvironment.API_VERSION},
@@ -231,24 +232,15 @@ def run_cli(options: RunOptions) -> None:
     try:
         print(
             """
-            ┐  ╖
-        ╓╖╬│╡  ││╬╖╖
-    ╓╖╬│││││┘  ╬│││││╬╖
- ╖╬│││││╬╜        ╙╬│││││╖╖                               ╗╗╗
- ╬╬╬╬╖││╦╖        ╖╬││╗╣╣╣╬      ╟╣╣╬    ╟╣╣╣             ╜╜╜  ╟╣╣
- ╬╬╬╬╬╬╬╬╖│╬╖╖╓╬╪│╓╣╣╣╣╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╒╣╣╖╗╣╣╣╗   ╣╣╣ ╣╣╣╣╣╣ ╟╣╣╖   ╣╣╣
- ╬╬╬╬┐  ╙╬╬╬╬│╓╣╣╣╝╜  ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╣╙ ╙╣╣╣  ╣╣╣ ╙╟╣╣╜╙  ╫╣╣  ╟╣╣
- ╬╬╬╬┐     ╙╬╬╣╣      ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣     ╣╣╣┌╣╣╜
- ╬╬╬╜       ╬╬╣╣      ╙╝╣╣╬      ╙╣╣╣╗╖╓╗╣╣╣╜ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣╦╓    ╣╣╣╣╣
- ╙   ╓╦╖    ╬╬╣╣   ╓╗╗╖            ╙╝╣╣╣╣╝╜   ╘╝╝╜   ╝╝╝  ╝╝╝   ╙╣╣╣    ╟╣╣╣
-   ╩╬╬╬╬╬╬╦╦╬╬╣╣╗╣╣╣╣╣╣╣╝                                             ╫╣╣╣╣
-      ╙╬╬╬╬╬╬╬╣╣╣╣╣╣╝╜
-          ╙╬╬╬╣╣╣╜
-             ╙
-        """
+    ╔══════════════════════════════════════╗
+    ║        COGNITION LEARN               ║
+    ║      Advanced ML-Agents              ║
+    ║         Interface                    ║
+    ╚══════════════════════════════════════╝
+            """
         )
     except Exception:
-        print("\n\n\tUnity Technologies\n")
+        print("\n\n\tCognitionLearn - Advanced ML-Agents Interface\n")
     print(get_version_string())
 
     if options.debug:
