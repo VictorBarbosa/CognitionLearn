@@ -3,14 +3,16 @@ Simple GUI for CognitionLearn - ML-Agents with GUI
 This serves as the main window that replaces the CLI interface
 """
 import sys
+import os
 from typing import Optional
 
 try:
     from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                                  QHBoxLayout, QPushButton, QTextEdit, QLabel,
-                                 QTabWidget, QFileDialog, QComboBox, QGroupBox)
-    from PyQt6.QtCore import Qt, QThread, pyqtSignal
-    from PyQt6.QtGui import QFont, QIcon, QColor
+                                 QTabWidget, QFileDialog, QComboBox, QGroupBox,
+                                 QSplashScreen)
+    from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+    from PyQt6.QtGui import QFont, QIcon, QColor, QPixmap, QPainter, QPen, QBrush
     GUI_AVAILABLE = True
 except ImportError:
     GUI_AVAILABLE = False
@@ -350,6 +352,42 @@ class MainWindow(QMainWindow):
             """)
 
 
+def create_logo_pixmap(width=300, height=300):
+    """Create a simple logo programmatically"""
+    pixmap = QPixmap(width, height)
+    pixmap.fill(QColor(30, 30, 30))  # Dark background
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    # Set pen for drawing
+    pen = QPen(QColor(100, 181, 246))  # Light blue
+    pen.setWidth(2)
+    painter.setPen(pen)
+
+    # Draw brain-like shape
+    brush = QBrush(QColor(74, 111, 165))  # Blue color
+    painter.setBrush(brush)
+
+    # Main brain shape (simplified)
+    painter.drawEllipse(75, 60, 150, 120)  # Main oval
+    painter.drawEllipse(100, 70, 50, 60)   # Left bump
+    painter.drawEllipse(150, 70, 50, 60)   # Right bump
+
+    # Neural connections
+    painter.setBrush(QBrush(QColor(224, 224, 224)))  # Light color for details
+    painter.drawEllipse(120, 100, 15, 15)   # Neural connection 1
+    painter.drawEllipse(145, 100, 15, 15)   # Neural connection 2
+    painter.drawEllipse(132, 120, 10, 10)   # Neural connection 3
+
+    painter.end()
+
+    return pixmap
+
+# Global references to keep objects alive
+main_window_instance = None
+splash_instance = None
+
 def launch_gui():
     """Launch the main GUI window"""
     if not GUI_AVAILABLE:
@@ -359,15 +397,53 @@ def launch_gui():
     app = QApplication.instance()
     if app is None:
         app = QApplication(sys.argv)
-        # Set application attributes for better dark theme support
-        app.setStyle('Fusion')  # This provides better styling for dark themes
+        app.setStyle('Fusion')
 
-    window = MainWindow()
-    window.show()
+    # Try to load the logo image
+    # Path: ml-agents/cognitionlearn/ico/logo.png
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    logo_path = os.path.join(base_dir, "cognitionlearn", "ico", "logo.png")
+    
+    if os.path.exists(logo_path):
+        logo_pixmap = QPixmap(logo_path)
+        if not logo_pixmap.isNull():
+            # Scale image to be prominent
+            logo_pixmap = logo_pixmap.scaled(800, 500, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        else:
+            logo_pixmap = create_logo_pixmap(400, 400)
+    else:
+        logo_pixmap = create_logo_pixmap(400, 400)
+
+    # Show splash screen
+    global splash_instance
+    splash_instance = QSplashScreen(logo_pixmap)
+    # Ensure it stays on top and is visible
+    splash_instance.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
+    splash_instance.show()
+
+    # Process events to ensure the splash screen is drawn
+    app.processEvents()
+
+    # Create main window after a delay (5 seconds for better visibility)
+    QTimer.singleShot(5000, lambda: show_main_window(app, splash_instance))
 
     # If running as standalone app
     if not QApplication.instance().property('is_subapp'):
         sys.exit(app.exec())
+
+# Global reference to keep main window alive
+main_window_instance = None
+
+def show_main_window(app, splash):
+    """Show the main window and close splash screen"""
+    global main_window_instance
+    
+    # Create and show main window
+    main_window_instance = MainWindow()
+    main_window_instance.show()
+    
+    # Close splash screen when main window is ready
+    splash.finish(main_window_instance)
 
 
 if __name__ == "__main__":
